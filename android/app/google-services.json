@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "936064654515",
+    "project_id": "khiyabun-f62bf",
+    "storage_bucket": "khiyabun-f62bf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:936064654515:android:97ce7d751382dcffd224c6",
+        "android_client_info": {
+          "package_name": "com.khiyabun.khiyabun"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWCWerQPSjdVNxdT6tPdJP5LgC45LcKVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

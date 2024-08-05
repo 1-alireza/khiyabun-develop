@@ -1,0 +1,47 @@
+{
+  "welcome": "مرحبًا بك في تطبيقي!",
+  "login_description": "انضم إلى آلاف الشركات والوكلاء الذين يستخدمون خيابون للاستفادة من المزيد من الفرص وزيادة فرص النجاح.",
+  "home": "بیت",
+  "profile": "بروفایل",
+  "about": "نحن",
+  "ARAKO_GROUP": "ARAKO GROUP",
+  "daily_advice": "Daily Advice",
+  "time_clock": "زمان",
+  "time_clock_started_at": "شروع",
+  "time_clock_finished_at": "پایان",
+  "time_clock_time": "مدت زمان",
+  "requests": "درخواست\u200Cها",
+  "flags": "پرچم\u200Cها",
+  "chats": "چت\u200Cها",
+
+  "announcements": "اطلاعیه\u200Cها",
+  "new_articles": "مقالات جدید",
+  "birthday": "تولد",
+  "birthdays": "تولد\u200Cها",
+  "which_days": "أي أيام؟",
+  "no_birthday_available": "اليوم ليس لدينا أعياد ميلاد، ولكن هذا لا يعني أننا لا نستطيع الاحتفال.\uD83E\uDD20",
+  "no_news_available": "لا توجد أخبار! ربما نجد شيئًا مثيرًا غدًا \uD83D\uDE0A",
+  "no_advice_available": "التوصیه التوصیه التوصیه التوصیه التوصیه التوصیه التوصیه التوصیه التوصیه التوصیه التوصیه التوصیه .",
+
+  "no_flags_available": "لا توجد أي أعلام معتمدة",
+  "no_request_available": "هیچ درخواستی ندادی!",
+  "say_congratulations_to": "پیام تبریک برای",
+  "article_and_podcast": "مقاله و پادکست",
+  "confirmed_flags": "پرچم تایید شده",
+  "article": "مقاله",
+  "podcast": "پادکست",
+  "episode": "قسمت",
+  "no_article_available": "عالم من الأفكار المثيرة بانتظارك؛ فقط انتظر قليلًا!",
+  "no_podcast_available": "حلقة جديدة رائعة في الطريق؛ استعد لها!",
+
+  "more": "بیشتر",
+  "confirmed": "تایید شده",
+  "news": "خبر",
+  "news_comment": "متن نظر...",
+
+  "notification": "الإشعارات",
+  "notify_me_about": "أعلمني عن",
+  "allow_push_notification": "السماح بإرسال الإشعارات",
+  "notification_supporting_text": "لبدء تلقي الإشعارات من خیابون، يرجى تشغيل \"إظهار الإشعارات\" في إعدادات جهازك"
+
+}

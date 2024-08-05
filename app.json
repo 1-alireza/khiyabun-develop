@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "app",
+    "slug": "khiyabun",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/img/logo/startLogoPhotoroom.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends.",
+          "cameraPermission": "has Access"
+        }
+      ]
+    ],
+    "assetBundlePatterns": [
+      "**/*",
+      "assets/fonts"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.khiyabun.khiyabun",
+      "googleServicesFile": "./android/app/google-services.json",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f5d10185-a7ba-4584-85d8-e7c5f51ce256"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f5d10185-a7ba-4584-85d8-e7c5f51ce256"
+      }
+    },
+    "owner": "khiyabun"
+  }
+}
