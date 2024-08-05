@@ -31,7 +31,8 @@ import {usePushNotifications} from "./usePushNotifications";
 const App = () => {
     const {expoPushToken, notification} = usePushNotifications();
     // const data = JSON.stringify(notification, undefined, 2);
-    Alert.alert("Upload Error", expoPushToken.toString());
+    alert(expoPushToken.data)
+    console.log(expoPushToken)
     // ExponentPushToken[Ag0kRJMzPBjWO1vQhAPSdg]
     const [fontsLoaded] = useFonts({
         'dana-regular': require('./assets/fonts/dana/regular.ttf'),
