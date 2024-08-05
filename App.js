@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useMemo} from 'react';
-import {useColorScheme} from "react-native";
+import {Alert, useColorScheme} from "react-native";
 import {NavigationContainer} from '@react-navigation/native';
 import {useFonts} from "expo-font";
 import {I18nextProvider} from 'react-i18next';
@@ -31,7 +31,7 @@ import {usePushNotifications} from "./usePushNotifications";
 const App = () => {
     const {expoPushToken, notification} = usePushNotifications();
     // const data = JSON.stringify(notification, undefined, 2);
-    console.log("expoPushToken:", expoPushToken)
+    Alert.alert("Upload Error", expoPushToken.toString());
     // ExponentPushToken[Ag0kRJMzPBjWO1vQhAPSdg]
     const [fontsLoaded] = useFonts({
         'dana-regular': require('./assets/fonts/dana/regular.ttf'),
