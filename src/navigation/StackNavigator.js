@@ -59,7 +59,8 @@ const StackNavigator = () => {
     const {colors} = useTheme();
     const [isVisible, setIsVisible] = useState(false)
     const isDarkMode = useSelector(state => state.theme.darkTheme);
-    const isUserLogin = useSelector(state => state.login.is_login);
+    // const isUserLogin = useSelector(state => state.login.is_login);
+    const isUserLogin = true;
     const isRTL = I18nManager.isRTL;
     const icon = isRTL ? "arrow-right-outline" : "arrow-left-outline"
 
