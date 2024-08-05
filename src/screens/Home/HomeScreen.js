@@ -21,6 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {TOKEN_KEY} from "../../utils/constant";
 
 import * as Notifications from 'expo-notifications';
+import {usePushNotifications} from "../../../usePushNotifications";
 
 const HomeScreen = () => {
     const navigation = useNavigation()
@@ -29,7 +30,10 @@ const HomeScreen = () => {
     const [notifications, setNotifications] = useState(0);
     const {profileData} = useSelector((state) => state.profile); // Access the slice state
     const dispatch = useDispatch();// Access the slice state
-    const [expoPushToken, setExpoPushToken] = useState('');
+
+    const {expoPushToken, notification} = usePushNotifications();
+    const data = JSON.stringify(notification, undefined, 2);
+
 
     useEffect(() => {
         const configureNotifications = async () => {
@@ -54,11 +58,9 @@ const HomeScreen = () => {
         configureNotifications();
     }, []);
 
-
-
     const requestPushNotificationPermissions = async () => {
         try {
-            const { status } = await Notifications.getPermissionsAsync();
+            const {status} = await Notifications.getPermissionsAsync();
             console.log("Current Notifications status:", status);
 
             if (status === 'granted') {
@@ -67,7 +69,7 @@ const HomeScreen = () => {
                 setExpoPushToken(token.data);
                 return token.data;
             } else if (status === 'undetermined') {
-                const { status: newStatus } = await Notifications.requestPermissionsAsync();
+                const {status: newStatus} = await Notifications.requestPermissionsAsync();
                 if (newStatus === 'granted') {
                     const token = await Notifications.getExpoPushTokenAsync();
                     setExpoPushToken(token.data);
@@ -86,6 +88,7 @@ const HomeScreen = () => {
             return null;
         }
     };
+
     const promptUserToOpenSettings = () => {
         Alert.alert(
             'Notification Permissions Required',
@@ -102,6 +105,7 @@ const HomeScreen = () => {
             ]
         );
     };
+
     const sendPushNotification = async (token) => {
         const message = {
             to: token,
@@ -121,7 +125,6 @@ const HomeScreen = () => {
         });
     };
 
-
     useEffect(() => {
         setNotifications(10);
         navigation.setParams({badgeCount: notifications});
@@ -134,7 +137,6 @@ const HomeScreen = () => {
     useEffect(() => {
         getProfileData(); // Fetch profile data when the component mounts
     }, [dispatch]); // Make sure to include dispatch in dependency array
-
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -152,6 +154,7 @@ const HomeScreen = () => {
                             colors={[colors.primary]}
                             progressBackgroundColor={colors.surfaceContainerLowest}/>}>
             <View>
+                {expoPushToken && <Text style={{color: "red"}}>{expoPushToken?.data}</Text>}
                 <Calendar/>
                 <DailyAdvice/>
                 <TimeClock/>

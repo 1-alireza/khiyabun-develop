@@ -29,10 +29,10 @@ import {signIn} from "./src/redux/slices/loginSlice";
 import {usePushNotifications} from "./usePushNotifications";
 
 const App = () => {
-    const {expoPushToken, notification} = usePushNotifications();
-    // const data = JSON.stringify(notification, undefined, 2);
-    alert(expoPushToken.data)
-    console.log(expoPushToken)
+    // const {expoPushToken, notification} = usePushNotifications();
+    // // const data = JSON.stringify(notification, undefined, 2);
+    // alert(expoPushToken.data)
+    // console.log(expoPushToken)
     // ExponentPushToken[Ag0kRJMzPBjWO1vQhAPSdg]
     const [fontsLoaded] = useFonts({
         'dana-regular': require('./assets/fonts/dana/regular.ttf'),

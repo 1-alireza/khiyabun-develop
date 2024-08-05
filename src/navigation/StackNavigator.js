@@ -89,7 +89,7 @@ const StackNavigator = () => {
                     },
                 }}
             >
-                {!isUserLogin ? (
+                {isUserLogin ? (
                     <>
                         <Stack.Screen name="Main" component={BottomTabNavigator} options={{headerShown: false}}/>
                         <Stack.Screen name="Audio" component={AudioRecorder} options={{headerShown: false}}/>
