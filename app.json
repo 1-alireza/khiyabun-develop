@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "app",
-    "slug": "khiyabun",
+    "slug": "khiyabun-develop",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -47,14 +47,11 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "updates": {
-      "url": "https://u.expo.dev/f5d10185-a7ba-4584-85d8-e7c5f51ce256"
-    },
     "extra": {
       "eas": {
-        "projectId": "f5d10185-a7ba-4584-85d8-e7c5f51ce256"
+        "projectId": "0fa7516f-e21c-4a93-8298-ca5b12a8ae5f"
       }
     },
-    "owner": "khiyabun"
+    "owner": "a.zare"
   }
 }
