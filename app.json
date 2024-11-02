@@ -18,6 +18,17 @@
           "photosPermission": "The app accesses your photos to let you share them with your friends.",
           "cameraPermission": "has Access"
         }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/crashlytics",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
       ]
     ],
     "assetBundlePatterns": [
@@ -25,7 +36,9 @@
       "assets/fonts"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.khiyabun.khiyabun",
+      "googleServicesFile": "./ios/GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
