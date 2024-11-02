@@ -51,7 +51,6 @@ import TeamMemberShipHistory from "../screens/TeamMemberSheepHistory/TeamMemberS
 import AudioRecorder from "../screens/Note/AudioRecorder";
 import ResetPasswordScreen from "../screens/LoginAndRegister/ResetPasswordScreen";
 
-
 const Stack = createStackNavigator();
 
 const StackNavigator = () => {
@@ -59,15 +58,13 @@ const StackNavigator = () => {
     const {colors} = useTheme();
     const [isVisible, setIsVisible] = useState(false)
     const isDarkMode = useSelector(state => state.theme.darkTheme);
-    // const isUserLogin = useSelector(state => state.login.is_login);
-    const isUserLogin = true;
+    const isUserLogin = useSelector(state => state.login.is_login);
     const isRTL = I18nManager.isRTL;
     const icon = isRTL ? "arrow-right-outline" : "arrow-left-outline"
 
     const closeSheet = () => {
         setIsVisible(false)
     }
-
 
     return (
         <>
@@ -360,7 +357,6 @@ const StackNavigator = () => {
                         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{headerShown: false}}/>
                     </>
                 )}
-
 
             </Stack.Navigator>
             <FilterRequestSheet isVisible={isVisible} onClose={closeSheet}/>

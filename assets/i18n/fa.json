@@ -90,5 +90,10 @@
   "email": "ایمیل",
   "email_example": "برای مثال khyabun@gmail.com",
   "set_new_password": "رمز عبور جدید را تنظیم کنید",
-  "reset_password": "بازیابی رمز عبور"
+  "reset_password": "بازیابی رمز عبور",
+  "enter_expertise": "تخصص های خود را وارد کنید",
+  "end_time": "زمان پایان",
+  "error_start_time": "زمان شروع را وارد کنید.",
+  "error_end_time": "زمان پایان را وارد کنید.",
+  "error_end_mismatch": "زمان شروع و پایان نمیتواند یکسان باشد."
 }

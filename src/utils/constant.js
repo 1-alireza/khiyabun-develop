@@ -1,8 +1,8 @@
 import Toast from "../components/Toast";
 
-export const BASE_URL = 'http://78.109.199.54:8080/api/';
+export const BASE_URL = 'https://server.khiyabun.ir/api/';
 
-export const BASE_UPLOAD_URL = 'http://78.109.199.54:8080/api/upload';
+export const BASE_UPLOAD_URL = 'https://server.khiyabun.ir/api/upload';
 // export const BASE_URL = 'https://jsonplaceholder.typicode.com/posts/1/comments';
 export const LANGUAGE_KEY = 'lang';
 export const TOKEN_KEY = 'user_token';

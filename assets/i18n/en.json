@@ -2,7 +2,7 @@
   "persian":"Persian",
   "english": "English",
   "arabic": "Arabic",
-  "welcome": "Welcome ot join Khiyobun",
+  "welcome": "Welcome to join Khiyabun",
   "login_description": "Join thousands of businesses and agent that use khiyabun to gain more opportunities and win more chance ",
   "buy_account_text": "buy signing up you agree to our term of use and confirm you have read our privacy policy",
   "welcome_home": "Welcome Home",
@@ -90,5 +90,10 @@
   "email": "Email",
   "email_example": "For example khyabun@gmail.com",
   "set_new_password": "Set new password",
-  "reset_password": "Reset Password"
+  "reset_password": "Reset Password",
+  "enter_expertise": "Enter your expertise",
+  "end_time": "End Time",
+  "error_start_time": "Start time is required.",
+  "error_end_time": "End time is required.",
+  "error_end_mismatch": "End time must be after start time."
 }

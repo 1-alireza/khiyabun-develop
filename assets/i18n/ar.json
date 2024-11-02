@@ -90,5 +90,7 @@
   "email": "البريد الإلكتروني",
   "email_example": "على سبيل المثال khyabun@gmail.com",
   "set_new_password": "تعيين كلمة مرور جديدة",
-  "reset_password": "إعادة تعيين كلمة المرور"
+  "reset_password": "إعادة تعيين كلمة المرور",
+  "enter_expertise": "تخصص های خود را وارد کنیدar",
+  "end_time": "زمان پایانar"
 }
