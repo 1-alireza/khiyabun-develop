@@ -1,28 +1,28 @@
-import {useTranslation} from "react-i18next";
-import {useTheme} from "@react-navigation/native";
-import {StyleSheet, FlatList, View, RefreshControl, Pressable} from "react-native";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "@react-navigation/native";
+import { StyleSheet, FlatList, View, RefreshControl, Pressable } from "react-native";
 import Card from "../../components/Card";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import Team from "./Team";
 import NoTeam from "../Team/NoTeam";
-import KhiyabunIcons from "../../components/KhiyabunIcons";
-import {getRequest} from "../../utils/sendRequest";
-const avatar = require("../../../assets/img/3d_avatar_21.png");
+import { getRequest } from "../../utils/sendRequest";
+import { useSelector } from "react-redux";
 
 
 function TeamsScreen() {
-    const {t, i18n} = useTranslation();
-    const {colors} = useTheme();
+    const { t, i18n } = useTranslation();
+    const { colors } = useTheme()
+    const userToken = useSelector(state => state.login.token);
     const styles = useThemedStyles(colors)
-    const [memberShipHistory, setMemberShipHistory] =useState( [])
+    const [memberShipHistory, setMemberShipHistory] = useState([])
     useEffect(() => {
         getMemberShipHistory()
     }, []);
 
     const getMemberShipHistory = async () => {
-        let res = await getRequest("profile/membership_history")
+        let res = await getRequest("profile/membership_history", {}, userToken)
         console.log("parssaaaa", res.data)
-        setMemberShipHistory(memberShipHistory=>res.data)
+        setMemberShipHistory(memberShipHistory => res.data)
         console.log(memberShipHistory)
     }
 
@@ -36,7 +36,7 @@ function TeamsScreen() {
             setRefreshing(false);
         }, 2000);
     };
-    const renderItem = ({item}) => <Team item={item}/>;
+    const renderItem = ({ item }) => <Team item={item} />;
 
     const isEmpty = memberShipHistory.length === 0;
     return (
@@ -47,12 +47,12 @@ function TeamsScreen() {
                     <FlatList
                         data={memberShipHistory}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.id}
-                        contentContainerStyle={isEmpty?styles.emptyFlatList:styles.flatList}
-                        ItemSeparatorComponent={() => <View style={styles.separator}/>}
+                        keyExtractor={(item, i) => i}
+                        contentContainerStyle={isEmpty ? styles.emptyFlatList : styles.flatList}
+                        ItemSeparatorComponent={() => <View style={styles.separator} />}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}
-                                                        colors={[colors.primary]}
-                                                        progressBackgroundColor={colors.surfaceContainerLowest}/>}
+                            colors={[colors.primary]}
+                            progressBackgroundColor={colors.surfaceContainerLowest} />}
                         ListEmptyComponent={NoTeam}
                     />
                 </Card>
@@ -88,7 +88,7 @@ const useThemedStyles = (colors) => {
             minHeight: 600,
             justifyContent: "center",
             alignItems: "center"
-        }  ,
+        },
 
     });
 };

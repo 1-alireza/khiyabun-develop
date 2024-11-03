@@ -1,20 +1,27 @@
 {
   "cli": {
-    "version": ">= 10.2.1"
+    "version": ">= 10.2.1",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "development"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "preview"
     },
     "production": {
       "android": {
         "image": "latest",
-        "buildType": "apk"
-      }
+        "buildType": "apk",
+        "env": {
+          "GOOGLE_SERVICES_JSON": "@khiyabun/GOOGLE_SERVICES_JSON"
+        }
+      },
+      "channel": "production"
     }
   },
   "submit": {

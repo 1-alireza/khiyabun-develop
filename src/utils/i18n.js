@@ -22,7 +22,7 @@ i18n.use(initReactI18next) // استفاده از initReactI18next
         fallbackLng: 'fa', // زبان پشتیبانی شده پیش‌فرض
         resources: {
             ar: { translation: {...arTranslation,...arAli,...arPars} }, // ترجمه‌های عربی
-            en: { translation: {...enTranslation,...enAli,...enPars} }, // ترجمه‌های انگلیسی
+            en: { translation: {...enPars,...enAli,...enTranslation} }, // ترجمه‌های انگلیسی
             fa: { translation: {...faTranslation,...faAli,...faPars} }  // ترجمه‌های فارسی
         },
         interpolation: {

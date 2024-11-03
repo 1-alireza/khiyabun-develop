@@ -1,9 +1,9 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import KhiyabunIcons from './KhiyabunIcons';
 import {useTheme} from "@react-navigation/native";
 import Badge from "./Badge";
-import gStyles from "../global-styles/GlobalStyles"; // Assuming you have an icon component
+import CustomText from "./CustomText";
 
 const PageHeader = ({
                         title,
@@ -34,24 +34,26 @@ const PageHeader = ({
     return (
         <>
             <View style={styles.header}>
-                {leftIconName &&
+                {leftIconName?
                     <TouchableOpacity activeOpacity={0.7} onPress={handleLeftIconPress}>
                         <KhiyabunIcons name={leftIconName} size={24} color={colors.onSurface}/>
-                    </TouchableOpacity>
+                    </TouchableOpacity>:<View style={{width:24,height:24}}/>
                 }
 
-                <Text style={[styles.title, {
-                    color: titleColor ? titleColor : colors.onSurfaceHigh,
-                    fontSize: titleSize ? titleSize : 16
-                }]}>{title}</Text>
+                <CustomText
+                    size={titleSize ? titleSize : 16} weight={'bold'}
+                    color={titleColor ? titleColor : colors.onSurfaceHigh}
+                    lineHeight={26}
+                    textAlign={'center'}>
+                    {title}
+                </CustomText>
 
-
-                {rightIconName ?
+                {rightIconName?.length ?
                     <TouchableOpacity activeOpacity={0.7} onPress={handleRightIconPress}>
                         <KhiyabunIcons name={rightIconName} size={24} color={colors.onSurface}/>
                         {badgeCount > 0 && (<Badge text={badgeCount > 9 ? "+9" : badgeCount}
                                                    width={18} height={14} badgeStyle={styles.badge} fontSize={10}/>)}
-                    </TouchableOpacity> : children
+                    </TouchableOpacity> : children?children:<View style={{width:24,height:24}}/>
                 }
             </View>
         </>
@@ -70,11 +72,6 @@ const useThemedStyles = () => {
             paddingHorizontal: 15,
             height: 60,
             backgroundColor: colors.surfaceContainerLowest,
-        },
-        title: {
-            ...gStyles.fontBold,
-            textAlign: 'center',
-            lineHeight: 26,
         },
         badge: {
             position: "absolute",

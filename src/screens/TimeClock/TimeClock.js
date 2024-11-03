@@ -1,33 +1,105 @@
 import React, {useState, useEffect} from 'react';
-import {View, StyleSheet, Dimensions, Text, ScrollView} from 'react-native';
+import {View, StyleSheet, Dimensions} from 'react-native';
 import {LinearProgress} from '@rneui/themed';
-import {useTheme} from "@react-navigation/native";
-import Button from "../../components/Button";
-import CustomModal from "../../components/CustomModal";
-import CheckList from "./CheckList";
 import {useTranslation} from "react-i18next";
+import {useTheme} from "@react-navigation/native";
+import CustomModal from "../../components/CustomModal";
+import Button from "../../components/Button";
 import RestChips from "./RestChips";
+import CheckList from "./CheckList";
+import CustomText from "../../components/CustomText";
+import {putRequest} from "../../utils/sendRequest";
+import {formatServerTime} from "../../utils/helper";
+import {
+    setBreakTime,
+    setProductiveTime,
+    setWorkLogData,
+    updateIsRestingInWorkLogData
+} from "../../redux/slices/workLogSlice";
+import {useDispatch, useSelector} from "react-redux";
+import * as Location from "expo-location";
 
-const TimeClock = ({setSheetVisible, isOnRestMode, setIsOnRestMode}) => {
-    const {t} = useTranslation();
-    const [progress, setProgress] = useState(0);
-    const [finishWork, setFinishWork] = useState(false);
-    const [isFinishWorkModalVisible, setIsFinishWorkModalVisible] = useState(false)
-    const styles = useThemedStyles();
+import {NetworkInfo} from 'react-native-network-info';
+import * as Network from 'expo-network';
+
+import CustomToast from "../../components/CustomToast";
+
+const TimeClock = ({setSheetVisible, setEnteredOffice}) => {
     const {colors} = useTheme();
-    const openContactMeSheet = () => {
-        setSheetVisible(true);
-    };
-    const toggleFinishWorkModal = () => {
-        setIsFinishWorkModalVisible(!isFinishWorkModalVisible);
-    }
-    const startWork = () => {
-        setIsOnRestMode(false);
-    }
-    const confirmFinishWork = () => {
-        setFinishWork(true);
-        setIsFinishWorkModalVisible(!isFinishWorkModalVisible);
-    }
+    const {t} = useTranslation();
+    const styles = useThemedStyles();
+    const lang = useSelector(state => state.language.language);
+
+    const userToken = useSelector(state => state.login.token);
+    const {workLogData} = useSelector(state => state.workLog);
+    const dispatch = useDispatch();
+
+    const [workTime, setWorkTime] = useState("00:00:00");
+    const [progress, setProgress] = useState(0);
+
+    const [isFinishWorkModalVisible, setIsFinishWorkModalVisible] = useState(false);
+    const [userCoordination, setUserCoordination] = useState(null);
+
+    const [ipAddress, setIpAddress] = useState('');
+
+    useEffect(() => {
+        const getPublicIP = async () => {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                setIpAddress(data.ip);
+                console.log("data", data.ip)
+            } catch (error) {
+                console.error('Failed to fetch public IP address:', error);
+            }
+        };
+
+        getPublicIP();
+    }, []);
+
+    useEffect(() => {
+        console.log("workLog Data ", workLogData);
+        turnOnLoc()
+
+        if (workLogData.endTime) return;
+
+        if (workLogData.rests?.length || workLogData.endTime) {
+            calculateTotalRestTime();
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!workLogData || workLogData.endTime) return;
+        if (workLogData.startTime) {
+            const startTime = new Date(workLogData.startTime).getTime();
+
+            const interval = setInterval(() => {
+                const now = Date.now();
+                const difference = Math.floor((now - startTime) / 1000);
+                const hours = Math.floor(difference / 3600);
+                const minutes = Math.floor((difference % 3600) / 60);
+                const seconds = difference % 60;
+                const tempTIME = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+                setWorkTime(tempTIME);
+
+                if (workLogData.isResting && workLogData.productiveTime === '00:00:00') {
+                    dispatch(setProductiveTime(calcTime(tempTIME, workLogData.breakTime)));
+                    return;
+                }
+
+                if (!workLogData.isResting) {
+                    dispatch(setProductiveTime(calcTime(tempTIME, workLogData.breakTime)));
+                }
+
+                if (workLogData.isResting) {
+                    dispatch(setBreakTime(calcTime(tempTIME, workLogData.productiveTime)))
+                }
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+
+    }, [dispatch, workLogData]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -43,14 +115,162 @@ const TimeClock = ({setSheetVisible, isOnRestMode, setIsOnRestMode}) => {
         };
     }, [progress]);
 
+    const calcTime = (workTime, breakTime) => {
+        function timeToSeconds(time) {
+            const parts = time.split(':').map(Number);
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        }
+
+        const totalSeconds1 = timeToSeconds(workTime);
+        const totalSeconds2 = timeToSeconds(breakTime);
+
+        let resultSeconds = totalSeconds1 - totalSeconds2;
+
+        if (resultSeconds < 0) {
+            console.error('Result is negative, cannot subtract.');
+            return null;
+        }
+
+        const hours = Math.floor(resultSeconds / 3600);
+        resultSeconds %= 3600;
+        const minutes = Math.floor(resultSeconds / 60);
+        const seconds = resultSeconds % 60;
+
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    const calculateTotalRestTime = () => {
+        let totalRestTimeInMilliseconds = 0;
+
+        workLogData.rests.forEach(rest => {
+            const startTime = new Date(rest.startTime);
+
+            let endTime;
+            if (rest.endTime) endTime = new Date(rest.endTime);
+            else endTime = Date.now();
+
+            if (endTime > startTime) {
+                const duration = endTime - startTime;
+                totalRestTimeInMilliseconds += duration;
+            }
+        });
+
+        const totalSeconds = Math.floor(totalRestTimeInMilliseconds / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const formattedDuration = [
+            String(hours).padStart(2, '0'),
+            String(minutes).padStart(2, '0'),
+            String(seconds).padStart(2, '0')
+        ].join(':');
+
+        dispatch(setBreakTime(formattedDuration));
+    };
+
+    const openContactMeSheet = () => {
+        setSheetVisible(true);
+    };
+
+    const toggleFinishWorkModal = () => {
+        setIsFinishWorkModalVisible(!isFinishWorkModalVisible);
+    }
+
+    const endRest = async () => {
+        try {
+            let res = await putRequest(`work_log/end_rest`, {}, userToken)
+            console.log("endingRest res", res)
+            if (res.statusCode === 200) {
+                dispatch(updateIsRestingInWorkLogData(false));
+            }
+        } catch (e) {
+            console.error("error endingRest!", e);
+        }
+    }
+
+    const clockOut = async () => {
+        try {
+            const body = {
+                lat: userCoordination.latitude,
+                lon: userCoordination.longitude,
+                wifiId: "2A-5C-6F-7D",
+                officeId: workLogData.officeId,
+            }
+            console.log("clock_out body", body)
+            let res = await putRequest("work_log/clock_out", body, userToken);
+            console.log("clock_out res", res);
+            setIsFinishWorkModalVisible(!isFinishWorkModalVisible);
+            if (res.statusCode === 200) {
+                // CustomToast.show(t("confirm_clock_in"), "confirm");
+                setEnteredOffice(false);
+                dispatch(setWorkLogData(res.data));
+                dispatch(setProductiveTime('00:00:00'));
+                dispatch(setBreakTime('00:00:00'));
+            } else if (res.statusCode === 406) {
+                CustomToast.show(res.message, "error");
+            }
+        } catch (e) {
+            console.error("error clocking out!", e);
+        }
+    };
+
+    async function checkWifiStatus() {
+        try {
+            let networkState = await Network.getNetworkStateAsync();
+            if (networkState.isConnected && networkState.type === Network.NetworkStateType.WIFI) {
+                console.log('Wi-Fi is turned on');
+                confirmWiFiConnection();
+            } else {
+                console.log('Wi-Fi is not turned on or connected to a Wi-Fi network');
+            }
+        } catch (error) {
+            console.error('Error checking Wi-Fi status:', error);
+        }
+    }
+
+    async function turnOnLoc() {
+        try {
+            let {status} = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.log('Location permission denied');
+                return;
+            }
+            let location = await Location.getCurrentPositionAsync({});
+            if (!location) {
+                console.log('No location available');
+                return;
+            }
+            if (location) {
+                setUserCoordination(location.coords)
+            }
+        } catch (error) {
+            console.error('Error getting location:', error);
+        }
+    }
+
     return (
-        <ScrollView>
+        <>
             <View style={styles.container}>
 
                 <View style={styles.firstSection}>
-                    <Text style={styles.Text}>09:11 am</Text>
-                    <Text style={styles.totalText}>09:11:53</Text>
-                    <Text style={styles.Text}>17:25 pm</Text>
+                    <CustomText
+                        size={14} color={colors.onSurface} weight={'bold'} lineHeight={20}
+                        textAlign={'left'}>
+                        {formatServerTime(workLogData.startTime, lang === 'fa' ? 'fa' : 'en')}
+                    </CustomText>
+                    <CustomText
+                        size={32} color={workLogData.isResting ? colors.darkSecondary : colors.darkPrimary}
+                        weight={'bold'}
+                        lineHeight={36}
+                        textAlign={'center'}>
+                        {workTime}
+                    </CustomText>
+                    <CustomText
+                        size={14} color={colors.onSurface} weight={'bold'} lineHeight={20}
+                        textAlign={'left'}>
+                        {workTime}
+                    </CustomText>
                 </View>
 
                 <View style={{marginHorizontal: 8}}>
@@ -58,7 +278,8 @@ const TimeClock = ({setSheetVisible, isOnRestMode, setIsOnRestMode}) => {
                         style={{
                             height: 16,
                             borderRadius: 8,
-                            backgroundColor: colors.darkConfirm,
+                            backgroundColor: workLogData.isResting ? colors.secondary : colors.darkConfirm,
+                            marginTop: 8,
                             // color: "blue"
                         }}
                         value={progress}
@@ -70,63 +291,70 @@ const TimeClock = ({setSheetVisible, isOnRestMode, setIsOnRestMode}) => {
                 <View style={[styles.reportWrapper, {marginTop: 16}]}>
                     <View style={styles.leftWrapper}>
                         <View style={styles.reportWorkCircle}></View>
-                        <Text style={styles.reportText}>Total work</Text>
+                        <CustomText
+                            size={16} color={colors.onSurface} lineHeight={24}
+                            textAlign={'left'}>
+                            {t('productive_work')}
+                        </CustomText>
                     </View>
-                    <Text style={styles.reportWorkText}> 07:12:45 </Text>
+                    <CustomText
+                        size={15} weight={'bold'} color={colors.darkConfirm} lineHeight={24}
+                        textAlign={'center'}>
+                        {workLogData.productiveTime}
+                    </CustomText>
                 </View>
 
                 <View style={styles.reportWrapper}>
                     <View style={styles.leftWrapper}>
                         <View style={styles.reportBreakCircle}></View>
-                        <Text style={styles.reportText}>Total work</Text>
+                        <CustomText
+                            size={16} color={colors.onSurface} lineHeight={24}
+                            textAlign={'left'}>
+                            {t('total_break')}
+                        </CustomText>
                     </View>
-                    <Text style={styles.reportBreakText}> 07:12:45 </Text>
+                    <CustomText
+                        size={15} weight={'bold'} color={colors.darkSecondary} lineHeight={24}
+                        textAlign={'center'}>
+                        {workLogData.breakTime}
+                    </CustomText>
                 </View>
 
                 <View style={styles.buttonsWrapper}>
 
-                    <Button label="Finish work" sizeButton={"medium"}
+                    <Button label={t('finish_work')} sizeButton={"medium"}
                             style={styles.finishButton}
                             styleText={styles.finishButtonText}
                             onPress={toggleFinishWorkModal}
                             isBorder={true}
-                        // onPress={() => {
-                        //     setProgress(0.00001);
-                        // }}
                     />
 
-                    {isOnRestMode ? <Button label="Start work" sizeButton={"medium"}
-                                            style={styles.startButton}
-                                            styleText={styles.startButtonText}
-                                            onPress={startWork}
-                                            isBorder={true}
-                            // onPress={() => {
-                            //     setProgress(0.00001);
-                            // }}
+                    {workLogData.isResting ? <Button label={t('start_work')} sizeButton={"medium"}
+                                                     style={styles.startButton}
+                                                     styleText={styles.startButtonText}
+                                                     onPress={endRest}
+                                                     isBorder={true}
                         /> :
-                        <Button label="Take a break" sizeButton={"medium"}
+                        <Button label={t('take_break')} sizeButton={"medium"}
                                 style={styles.breakButton}
                                 styleText={styles.breakButtonText}
                                 onPress={openContactMeSheet}
                                 isBorder={true}
-                            // onPress={() => {
-                            //     setProgress(0);
-                            // }}
                         />
                     }
 
                 </View>
 
                 <CustomModal isVisible={isFinishWorkModalVisible} width={90} modalStyle={styles.modalStyle}
-                             onClose={toggleFinishWorkModal} modalTitle={"Are you sure your work finished?"}
-                             actionCallback={confirmFinishWork}
+                             onClose={toggleFinishWorkModal} modalTitle={t("is_sure_work_finished")}
+                             actionCallback={clockOut}
                              cancelCallback={toggleFinishWorkModal}
-                             actionButtonText={"Finish work"}
-                             cancelButtonText={"cancel"}
+                             actionButtonText={t("work_finished")}
+                             cancelButtonText={t("cancel")}
                              titleIcon={"info-circle-bold"} type={"info"}/>
             </View>
-            {isOnRestMode ? <RestChips/> : <CheckList/>}
-        </ScrollView>
+            {workLogData.isResting ? <RestChips/> : <CheckList/>}
+        </>
     );
 };
 
@@ -134,7 +362,7 @@ const useThemedStyles = () => {
     const {colors} = useTheme();
     return StyleSheet.create({
         container: {
-            marginTop: 16,
+            marginTop: 8,
             marginHorizontal: 6,
             flexDirection: "column",
             backgroundColor: colors.surfaceContainerLowest,
@@ -146,23 +374,8 @@ const useThemedStyles = () => {
             alignItems: "center",
             justifyContent: "space-between",
             marginHorizontal: 8,
-            marginBottom: -12
-        },
-        Text: {
-            fontFamily: "dana-bold",
-            fontWeight: "500",
-            fontSize: 14,
-            lineHeight: 20,
-            textAlign: "left",
-            color: colors.onSurface,
-        },
-        totalText: {
-            fontFamily: "dana-bold",
-            fontWeight: "500",
-            fontSize: 32,
-            lineHeight: 54,
-            textAlign: "center",
-            color: colors.darkPrimary
+            marginBottom: -12,
+            paddingTop: 8
         },
         reportWrapper: {
             flexDirection: "row",
@@ -175,37 +388,12 @@ const useThemedStyles = () => {
             flexDirection: "row",
             alignItems: "center",
         },
-        reportText: {
-            fontFamily: "dana-regular",
-            fontWeight: "400",
-            fontSize: 16,
-            lineHeight: 24,
-            textAlign: "left",
-            color: colors.onSurface,
-        },
         reportWorkCircle: {
             width: 12,
             height: 12,
             marginRight: 6,
             backgroundColor: colors.darkConfirm,
             borderRadius: 20
-        },
-        reportWorkText: {
-            fontFamily: "dana-bold",
-            fontWeight: "500",
-            fontSize: 16,
-            lineHeight: 24,
-            textAlign: "center",
-            color: colors.darkConfirm
-
-        },
-        reportBreakText: {
-            fontFamily: "dana-bold",
-            fontWeight: "500",
-            fontSize: 16,
-            lineHeight: 24,
-            textAlign: "center",
-            color: colors.secondary,
         },
         reportBreakCircle: {
             width: 12,
@@ -247,34 +435,22 @@ const useThemedStyles = () => {
 
         },
         finishButtonText: {
-            fontFamily: "dana-bold",
-            fontWeight: "500",
             fontSize: 14,
             lineHeight: 24,
             textAlign: "center",
             color: colors.darkError,
         },
         startButtonText: {
-            fontFamily: "dana-bold",
-            fontWeight: "500",
             fontSize: 14,
             lineHeight: 24,
             textAlign: "center",
             color: colors.darkConfirm,
         },
         breakButtonText: {
-            fontFamily: "dana-bold",
-            fontWeight: "500",
             fontSize: 14,
             lineHeight: 24,
             textAlign: "center",
             color: colors.darkSecondary
-        },
-        logoutModalText: {
-            fontSize: 16,
-            lineHeight: 24,
-            fontFamily: "dana-bold",
-            color: colors.onSurfaceHigh
         },
     });
 };

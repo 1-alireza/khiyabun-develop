@@ -6,12 +6,13 @@ import BaseLogin from "../../components/BaseLogin";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
-import {DIGIT_REGEX, UPPERCASE_REGEX} from "../../utils/constant";
-import {CheckBox} from "@rneui/themed";
-import i18n from "i18next";
+import {DIGIT_REGEX, TOKEN_KEY, UPPERCASE_REGEX} from "../../utils/constant";
 import {postRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
 import gStyles from "../../global-styles/GlobalStyles"
+import {useDispatch} from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {signIn} from "../../redux/slices/loginSlice";
 
 export const SetNewPasswordSection = ({uuid,navigation}) => {
     const {t} = useTranslation();
@@ -26,10 +27,12 @@ export const SetNewPasswordSection = ({uuid,navigation}) => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordHiddenText, setPasswordHiddenText] = useState(true);
     const [confirmPasswordHiddenText, setConfirmPasswordHiddenText] = useState(true);
-    const [loader, setLoader] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const passwordRef = useRef(null);
     const confirmPasswordRef = useRef(null);
+    const dispatch = useDispatch();
+
 
 
     const onChangePasswordHandler = (value) => {
@@ -77,20 +80,23 @@ export const SetNewPasswordSection = ({uuid,navigation}) => {
 
     const correctValues = ( password.entered_value.trim().length && confirmPassword.trim().length && password.length && password.entered_value === confirmPassword);
 
-    const onSignupHandler = async () => {
-        setLoader(true);
+    const onResetPasswordHandler = async () => {
+        setLoading(true);
         try {
             let api = "users/reset_password",
                 body = {
                     newPassword:password.entered_value,
                     verificationId: uuid
                 };
-            let response = await postRequest(api,body,false);
-            console.log(response);
+            let response = await postRequest(api,body,"");
+            console.log("response",response);
             if(response.statusCode === 200){
                 errorHandling(response,"confirm");
-
-                navigation.navigate('LoginWithUsername')
+                let token = response.data.token;
+                await AsyncStorage.setItem(TOKEN_KEY,token);
+                dispatch(signIn(token));
+                navigation.navigate("Main");
+                if (Platform.OS !== 'android') window.history.pushState({}, 'Main');
             }
             else {
                 errorHandling(response,"error");
@@ -99,7 +105,7 @@ export const SetNewPasswordSection = ({uuid,navigation}) => {
         catch (e){
             errorHandling(t("default_error"),"error");
         }
-        setLoader(false);
+        setLoading(false);
     }
 
 
@@ -163,11 +169,11 @@ export const SetNewPasswordSection = ({uuid,navigation}) => {
                 />
             </View>
             <Button
-                onPress={onSignupHandler}
+                onPress={onResetPasswordHandler}
                 label={t('reset_password')}
                 sizeButton="medium"
                 disabled={!correctValues}
-                showLoader={loader}
+                showLoading={loading}
             />
         </>
     )

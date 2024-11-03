@@ -3,7 +3,6 @@ import {Alert, Linking, Pressable} from "react-native";
 
 const ExternalLink = ({url, children}) => {
     const handlePress = useCallback(async () => {
-        console.log(5546)
         // Checking if the link is supported for links with custom URL scheme.
         const supported = await Linking.canOpenURL(url);
         if (supported) {

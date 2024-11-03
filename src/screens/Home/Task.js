@@ -1,10 +1,11 @@
 import React, {useState} from "react";
-import {View, Text, FlatList, StyleSheet} from "react-native";
+import {View, FlatList, StyleSheet} from "react-native";
 import {useTheme} from "@react-navigation/native";
-import HomeCard from "./HomeCartUI";
+import HomeCard from "./HomeCard";
 import {CheckBox} from "@rneui/themed";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import {useTranslation} from "react-i18next";
+import CustomText from "../../components/CustomText";
 
 const data = [
     {
@@ -51,15 +52,24 @@ const Task = () => {
                     containerStyle={styles.checkBox}
                 />
                 <View style={[styles.textWrapper, item.checked ? {opacity: 0.4} : ""]}>
-                    <Text style={styles.title} numberOfLines={1}>
+                    <CustomText size={15} color={colors.onSurfaceHigh}
+                                textAlign={'left'} letterSpacing={0.02} lines={1}
+                                lineHeight={24} customStyle={{maxWidth: "90%"}}>
                         {item.task_title}
-                    </Text>
-                    <Text style={styles.name}>{item.task_functor}</Text>
+                    </CustomText>
+                    <CustomText size={11} color={colors.onSurfaceLow}
+                                textAlign={'left'}
+                                lineHeight={16}>
+                        {item.task_functor}
+                    </CustomText>
                 </View>
             </View>
 
             <View style={styles.priorityBg}>
-                <Text style={styles.priorityText}>{item.task_sensitivity}</Text>
+                <CustomText size={11} color={colors.darkError} weight={'bold'}
+                            lineHeight={16}>
+                    {item.task_sensitivity}
+                </CustomText>
             </View>
         </View>
     );
@@ -104,24 +114,6 @@ const useThemedStyles = () => {
             paddingTop: 0,
             paddingBottom: 0,
         },
-        title: {
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceHigh,
-            fontSize: 16,
-            fontWeight: "400",
-            lineHeight: 24,
-            letterSpacing: 0.02,
-            textAlign: "left",
-            maxWidth: "90%",
-        },
-        name: {
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceLow,
-            fontSize: 12,
-            fontWeight: "400",
-            lineHeight: 16,
-            textAlign: "left",
-        },
         separator: {
             height: 1,
             backgroundColor: colors.outlineSurface,
@@ -132,12 +124,6 @@ const useThemedStyles = () => {
             borderRadius: 20,
             paddingVertical: 5,
             paddingHorizontal: 10,
-        },
-        priorityText: {
-            color: colors.darkError,
-            fontSize: 12,
-            fontWeight: "500",
-            lineHeight: 16,
         },
     });
 };

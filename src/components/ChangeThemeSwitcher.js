@@ -6,13 +6,15 @@ import {toggleTheme} from "../redux/slices/themeSlice";
 import {useTheme} from "@react-navigation/native";
 import ToggleSwitch from 'toggle-switch-react-native'
 import {useTranslation} from "react-i18next";
+import gStyles from "../global-styles/GlobalStyles";
+import CustomText from "./CustomText";
 
 
 const ChangeThemeSwitcher = () => {
     const {t} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
-    const[isOn,setIsOn]=useState(false)
+    const [isOn, setIsOn] = useState(false)
     const dispatch = useDispatch();
     const isDarkMode = useSelector((state) => state.theme.darkTheme);
 
@@ -25,9 +27,10 @@ const ChangeThemeSwitcher = () => {
 
     return (
         <Pressable style={styles.ChangeThemeSwitcherWrapper}>
-            <Text style={styles.ChangeThemeSwitcherText}>
+            <CustomText size={16} lineHeight={24} customStyle={styles.ChangeThemeSwitcherText}
+                        color={colors.onSurfaceHigh}>
                 {t("darkmode")}
-            </Text>
+            </CustomText>
             <ToggleSwitch
                 isOn={isOn}
                 onColor={colors.primary}
@@ -43,6 +46,17 @@ const ChangeThemeSwitcher = () => {
 
 
 const useThemedStyles = (colors) => {
+    const fontSizeScale = useSelector((state) => state.fontSizeSlice.fontSizeScale);
+    let height = 56
+    if (fontSizeScale === 3) {
+        height = height * 1.1
+    }
+    if (fontSizeScale === 4) {
+        height = height * 1.2
+    }
+    if (fontSizeScale === 5) {
+        height = height * 1.3
+    }
     return StyleSheet.create({
         ChangeThemeSwitcherWrapper: {
             flexDirection: "row",
@@ -52,16 +66,10 @@ const useThemedStyles = (colors) => {
             paddingHorizontal: 12,
             borderBottomColor: colors.outlineSurface,
             borderBottomWidth: 1,
-            height: 56,
-
+            height: height,
         },
         ChangeThemeSwitcherText: {
-            fontWeight: "400",
-            fontSize: 16,
-            lineHeight: 24,
-            fontFamily: "dana-regular",
             paddingHorizontal: 8,
-            color: colors.onSurfaceHigh
         }
     });
 };

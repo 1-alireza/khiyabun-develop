@@ -5,18 +5,22 @@ import Sheet from "../../components/Sheet";
 import Button from "../../components/Button";
 import React, {useEffect, useState} from "react";
 import Input from "../../components/Input";
-import {putRequest, postRequest} from "../../utils/sendRequest";
+import {putRequest, postRequest, getRequest} from "../../utils/sendRequest";
 import {CheckBox} from "@rneui/themed";
-import {TabView, SceneMap} from 'react-native-tab-view';
 import {errorHandling} from "../../utils/errorHandling";
+import {useSelector} from "react-redux";
+import gStyles from "../../global-styles/GlobalStyles";
 
-const AddTeamSheet = ({isVisible, onClose}) => {
+const AddTeamSheet = ({isVisible, onClose, haveTeam = true}) => {
     const {t, i18n} = useTranslation();
+    const userToken = useSelector(state => state.login.token);
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
     const [disabled, setDisabled] = useState(true)
     const [checked, setChecked] = useState(false)
     const [teamCode, setTeamCode] = useState('')
+    console.log(haveTeam)
+
     const getTeamCode = (val) => {
         setTeamCode(teamCode => val)
         console.log(teamCode)
@@ -29,10 +33,11 @@ const AddTeamSheet = ({isVisible, onClose}) => {
             const body = {
                 invitationCode: teamCode,
             }
-            let res = await postRequest("teams", body)
+            let res = await postRequest("teams", body, userToken)
             console.log("joinedTeam", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
+                haveTeam = true
                 if (checked) {
                     setActiveTeam(res.data.id)
                 }
@@ -54,7 +59,7 @@ const AddTeamSheet = ({isVisible, onClose}) => {
     const setActiveTeam = async (selectedTeamId) => {
         try {
             console.log("id", selectedTeamId)
-            let res = await putRequest(`profile/active_team?teamId=${selectedTeamId}`,)
+            let res = await putRequest(`profile/active_team?teamId=${selectedTeamId}`, {}, userToken)
             console.log("activeTeam", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -69,14 +74,20 @@ const AddTeamSheet = ({isVisible, onClose}) => {
         onClose()
     }
 
+    const closeSheet = async () => {
+        if (haveTeam) onClose()
+        else return
+
+    }
+
 
     return (
-        <Sheet isOpen={isVisible} fitContent={true} onClose={onClose} snapPoint={500}>
+        <Sheet isOpen={isVisible} fitContent={true} onClose={closeSheet} snapPoint={500}>
             <View style={styles.sheetHeader}>
                 <Text style={styles.sheetHeaderText}>{t("Join_team_using_code")}</Text>
             </View>
             <View style={styles.sheetBody}>
-                <Text>
+                <Text style={styles.enterTeamInfo}>
                     {t("enter_team_info")}
                 </Text>
                 <Input placeholder={t("team_code")} onChangeText={getTeamCode}/>
@@ -92,13 +103,14 @@ const AddTeamSheet = ({isVisible, onClose}) => {
                         checkedColor={colors.primary}
                         containerStyle={styles.checkBox}
                         title={t("active_team")}
+                        fontFamily={gStyles.fontMain.fontFamily}
                         textStyle={styles.deleteText}
                     />
                 </View>
             </View>
             <View style={styles.sheetOptions}>
                 <Button label={t("cancel")} sizeButton={"small"} style={styles.cancelButton} width={40}
-                        styleText={styles.cancelButtonText} onPress={onClose}/>
+                        styleText={styles.cancelButtonText} onPress={closeSheet}/>
                 <Button label={t("join")} sizeButton={"medium"} style={styles.selectButton}
                         styleText={styles.selectButtonText} disabled={disabled} width={60} onPress={joinTeam}
                         isBorder={true} borderColor={colors.primaryOutline}/>
@@ -139,7 +151,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         cancelButton: {
@@ -152,7 +164,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         sheetHeader: {
@@ -165,7 +177,7 @@ const useThemedStyles = (colors) => {
         sheetHeaderText: {
             paddingHorizontal: 16,
             color: colors.onSurface,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             lineHeight: 24
         },
         checkBox: {
@@ -182,10 +194,18 @@ const useThemedStyles = (colors) => {
             fontSize: 14,
             lineHeight: 20,
             color: colors.onSurfaceHigh,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             textAlign: "justify"
 
         },
+        enterTeamInfo: {
+            fontFamily: gStyles.fontMain.fontFamily,
+            fontSize: 14,
+            lineHeight: 20,
+            color: colors.onSurfaceContainer
+
+
+        }
 
     });
 };

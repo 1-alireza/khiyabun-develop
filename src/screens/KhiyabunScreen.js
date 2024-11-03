@@ -5,6 +5,7 @@ import {useTheme} from "@react-navigation/native";
 import {StyleSheet, ScrollView, View, Text} from "react-native";
 import {useTranslation} from "react-i18next";
 import ExternalLink from "../components/ExternalLink";
+import globalStyles from "../global-styles/GlobalStyles";
 
 function KhiyabunScreen() {
     const {colors} = useTheme();
@@ -126,7 +127,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "400",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: globalStyles.fontMain.fontFamily,
             paddingHorizontal: 8,
             color: colors.error
         },
@@ -134,7 +135,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "400",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: globalStyles.fontMain.fontFamily,
             paddingHorizontal: 8,
             color: colors.onSurfaceHigh
         },
@@ -144,7 +145,7 @@ const useThemedStyles = (colors) => {
         },
         cardHeaderText: {
             fontSize: 16,
-            fontFamily: "dana-bold",
+            fontFamily:globalStyles.fontBold.fontFamily,
             lineHeight: 24,
             color: colors.onSurface
         },

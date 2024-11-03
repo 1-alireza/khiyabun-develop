@@ -1,5 +1,5 @@
-import React, {useEffect, useState, useMemo} from 'react';
-import {Alert, useColorScheme} from "react-native";
+import React, { useEffect, useMemo} from 'react';
+import {SafeAreaView, useColorScheme} from "react-native";
 import {NavigationContainer} from '@react-navigation/native';
 import {useFonts} from "expo-font";
 import {I18nextProvider} from 'react-i18next';
@@ -14,34 +14,25 @@ import {MenuProvider} from "react-native-popup-menu";
 import AppDarkTheme from "./src/global-styles/AppDarkTheme";
 import AppLightTheme from "./src/global-styles/AppLightTheme";
 import {LANGUAGE_KEY, TOKEN_KEY} from "./src/utils/constant";
-import {PersistGate} from "redux-persist/integration/react";
 import "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import {toastConfig} from "./src/utils/constant";
-
+import {signIn} from "./src/redux/slices/loginSlice";
 
 // import {userLogin} from "./src/redux/actions/loginAction";
 // Wrap the whole app with <GestureHandlerRootView>
 import {GestureHandlerRootView} from "react-native-gesture-handler";
-
+import {PersistGate} from "redux-persist/integration/react";
 import {getUserDeviceInfo} from "./src/utils/getUserDeviceInfo";
-import {signIn} from "./src/redux/slices/loginSlice";
-import {usePushNotifications} from "./usePushNotifications";
+import {log} from "expo/build/devtools/logger";
+import {changeFontScale} from "./src/redux/slices/fontSizeSlice";
+
 
 const App = () => {
-    // const {expoPushToken, notification} = usePushNotifications();
-    // // const data = JSON.stringify(notification, undefined, 2);
-    // alert(expoPushToken.data)
-    // console.log(expoPushToken)
-    // ExponentPushToken[Ag0kRJMzPBjWO1vQhAPSdg]
     const [fontsLoaded] = useFonts({
-        'dana-regular': require('./assets/fonts/dana/regular.ttf'),
-        'dana-bold': require('./assets/fonts/dana/bold.ttf'),
-        'poppins-regular': require('./assets/fonts/poppins/regular.ttf'),
-        'poppins-thin': require('./assets/fonts/poppins/thin.ttf'),
-        'poppins-bold': require('./assets/fonts/poppins/bold-italic.ttf'),
+        'iran-yekan': require('./assets/fonts/iranyekan/yekan-regular.ttf'),
+        'iran-yekan-bold': require('./assets/fonts/iranyekan/yekan-bold.ttf'),
         'khiyabun-icons': require('./assets/fonts/icons/khiyabun-icons.ttf'),
-        'dana-persian-num': require('./assets/fonts/dana/fa-num-regular.ttf')
     });
 
     const dispatch = useDispatch();
@@ -66,9 +57,9 @@ const App = () => {
     useEffect(() => {
         const retrieveUserLogin = async () => {
             try {
-                const hasToken = await AsyncStorage.getItem(TOKEN_KEY)
-                if (hasToken !== null) {
-                    dispatch(signIn(hasToken));
+                const has_token = await AsyncStorage.getItem(TOKEN_KEY)
+                if (has_token !== null) {
+                    dispatch(signIn(has_token));
                 }
             } catch (error) {
                 console.error('Error retrieving theme:', error);
@@ -78,7 +69,24 @@ const App = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        // dispatch(userLogin());
+        const retrieveFontSize = async () => {
+            try {
+                const userFontSize = await AsyncStorage.getItem("userFontSize")
+                if (userFontSize) {
+                    dispatch(changeFontScale(userFontSize))
+                } else {
+                    await AsyncStorage.setItem("userFontSize","2")
+                    dispatch(changeFontScale("2"))
+                }
+
+            } catch (error) {
+                console.error('Error retrieving theme:', error);
+            }
+        };
+        retrieveFontSize();
+    }, [dispatch]);
+
+    useEffect(() => {
         const setLanguageFromStorage = async () => {
             try {
                 const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
@@ -125,15 +133,17 @@ const App = () => {
 };
 
 const RootApp = () => (
-    <Provider store={store}>
-        {/*<PersistGate persistor={persistor}>*/}
-        <I18nextProvider i18n={i18n}>
-            <MenuProvider>
-                <App/>
-            </MenuProvider>
-        </I18nextProvider>
-        {/*</PersistGate>*/}
-    </Provider>
+    <SafeAreaView style={{flex: 1}}>
+        <Provider store={store}>
+            {/*<PersistGate persistor={persistor}>*/}
+            <I18nextProvider i18n={i18n}>
+                <MenuProvider>
+                    <App/>
+                </MenuProvider>
+            </I18nextProvider>
+            {/*</PersistGate>*/}
+        </Provider>
+    </SafeAreaView>
 );
 
 export default RootApp;

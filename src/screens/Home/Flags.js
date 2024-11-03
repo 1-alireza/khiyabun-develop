@@ -1,20 +1,20 @@
 import React, {useEffect, useState} from "react";
-import {View, Text, TouchableOpacity, StyleSheet, I18nManager} from 'react-native';
+import {View, StyleSheet, I18nManager} from 'react-native';
 import {useTheme} from "@react-navigation/native";
-import HomeCard from "./HomeCartUI";
+import HomeCard from "./HomeCard";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import {useTranslation} from "react-i18next";
 import {useSelector} from "react-redux";
-import gStyles from "../../global-styles/GlobalStyles";
 import {getRequest} from "../../utils/sendRequest";
 import CustomSkeleton from "../../components/CustomSkeleton";
+import CustomText from "../../components/CustomText";
 
 
 function Flags() {
     const {t} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles();
-    const lang = useSelector(state => state.language.language);
+    const userToken = useSelector(state => state.login.token);
 
     const [latestFlags, setLatestFlags] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +36,7 @@ function Flags() {
             fromTime: "2024-04-02T00:00:00",
             toTime: "2024-04-02T23:59:59",
         };
-        const res = await getRequest("map_flag", body);
+        const res = await getRequest("map_flag", body, userToken);
         if (res.statusCode === 200) {
             setLatestFlags(res.data);
         }
@@ -47,9 +47,17 @@ function Flags() {
                 <View style={styles.RequestBox}>
                     {isLoading ? <CustomSkeleton width={150} height={20}/> : <>
                         {latestFlags.length > 0 ?
-                            <Text style={styles.requestText}>{`${latestFlags} ${t("confirmed_flags")}`}</Text>
+                            <CustomText size={13} weight={'bold'} color={colors.onSurface}
+                                        textAlign={I18nManager.isRTL ? "left" : "right"}
+                                        lineHeight={20}>
+                                {`${latestFlags} ${t("confirmed_flags")}`}
+                            </CustomText>
                             :
-                            <Text style={styles.text}>{t("no_flags_available")}</Text>
+                            <CustomText size={13} color={colors.onSurface}
+                                        textAlign={I18nManager.isRTL ? "left" : "right"}
+                                        lineHeight={20}>
+                                {t("no_flags_available")}
+                            </CustomText>
                         }
                     </>}
                     <KhiyabunIcons name="tick-circle-bold" size={20} color={colors.confirm}/>
@@ -61,7 +69,6 @@ function Flags() {
 
 const useThemedStyles = () => {
     const {colors} = useTheme();
-    const lang = useSelector(state => state.language.language);
     return StyleSheet.create({
         container: {
             marginBottom: 20,
@@ -75,19 +82,6 @@ const useThemedStyles = () => {
             borderRadius: 6,
             padding: 10,
             marginTop: 10,
-        },
-        requestText: {
-            fontFamily: (lang === 'fa') ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
-            color: colors.onSurface,
-            fontSize: 14,
-            lineHeight: 20,
-        },
-        text: {
-            fontFamily: lang === 'fa' ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
-            color: colors.onSurface,
-            fontSize: 14,
-            lineHeight: 20,
-            textAlign: I18nManager.isRTL ? "left" : "right",
         },
     });
 };

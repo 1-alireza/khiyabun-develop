@@ -1,9 +1,9 @@
-import {View, StyleSheet, Text, Pressable} from "react-native";
+import {View, StyleSheet, Pressable} from "react-native";
 import React from "react";
 import {useTheme} from "@react-navigation/native";
 import ToggleSwitch from "toggle-switch-react-native";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
-import gStyles from "../../global-styles/GlobalStyles";
+import CustomText from "../../components/CustomText";
 
 const NotificationsSettingItem = ({icon, title, isOn, disabled, onToggle, lastItem, cStyle}) => {
     const {colors} = useTheme();
@@ -13,16 +13,19 @@ const NotificationsSettingItem = ({icon, title, isOn, disabled, onToggle, lastIt
         <Pressable style={[styles.container, {borderBottomWidth: lastItem ? 0 : 1}, cStyle]}>
             <View style={styles.wrapper}>
                 <KhiyabunIcons name={icon} size={18} color={colors.secondary}/>
-                <Text allowFontScaling={false} style={styles.text}>{title}</Text>
+                <CustomText
+                    size={15} color={colors.onSurfaceHigh} lineHeight={24} textAlign={'left'}>
+                    {title}
+                </CustomText>
             </View>
             <ToggleSwitch
                 isOn={isOn}
-                onColor={colors.primary}
-                thumbOnStyle={styles.thumbOn}
-                trackOnStyle={styles.trackOn}
+                onColor={disabled ? colors.disabled : colors.primary}
+                thumbOnStyle={disabled ? styles.thumbOnDisabled : styles.thumbOn}
+                trackOnStyle={disabled ? styles.trackOnDisabled : styles.trackOn}
                 offColor={disabled ? colors.disabled : colors.surfaceContainerLowest}
-                thumbOffStyle={disabled ? styles.thumbDisabled : styles.thumbOff}
-                trackOffStyle={disabled ? styles.trackDisabled : styles.trackOff}
+                thumbOffStyle={disabled ? styles.thumbOffDisabled : styles.thumbOff}
+                trackOffStyle={disabled ? styles.trackOffDisabled : styles.trackOff}
                 onToggle={disabled ? undefined : onToggle}
                 disabled={disabled}
             />
@@ -46,13 +49,6 @@ const useThemedStyles = (colors) => {
             alignItems: "center",
             gap: 10,
         },
-        text: {
-            ...gStyles.fontMain,
-            color: colors.onSurfaceHigh,
-            fontSize: 16,
-            lineHeight: 24,
-            textAlign: "left",
-        },
         thumbOn: {
             backgroundColor: colors.surfaceContainerLowest,
             height: 24,
@@ -63,6 +59,18 @@ const useThemedStyles = (colors) => {
             backgroundColor: colors.primary,
             width: 52,
             height: 32,
+        },
+        trackOnDisabled: {
+            width: 52,
+            height: 32,
+            backgroundColor: '#a8b5ef',
+
+        },
+        thumbOnDisabled: {
+            height: 24,
+            width: 24,
+            borderRadius: 100,
+            backgroundColor: colors.surfaceContainerLowest,
         },
         thumbOff: {
             height: 16,
@@ -76,12 +84,12 @@ const useThemedStyles = (colors) => {
             borderWidth: 2,
             borderColor: colors.primaryOutline,
         },
-        thumbDisabled: {
+        thumbOffDisabled: {
             height: 16,
             width: 16,
             backgroundColor: colors.onDisabled,
         },
-        trackDisabled: {
+        trackOffDisabled: {
             width: 52,
             height: 32,
             backgroundColor: colors.disabledSurface,

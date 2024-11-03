@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity, Pressable} from 'react-native';
+import {View, Image, StyleSheet, Pressable} from 'react-native';
 import {useTheme} from "@react-navigation/native";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import Badge from "../../components/Badge";
+import CustomText from "../../components/CustomText";
 
 const ChatItem = ({item}) => {
     const styles = useThemedStyles();
@@ -26,7 +27,11 @@ const ChatItem = ({item}) => {
             const placeholderStyle = item.chatType === "channel" ? styles.channelsPlaceholder : styles.privatePlaceholder;
             return (
                 <View style={placeholderStyle}>
-                    <Text style={styles.profilePlaceholderText}>{item.name[0]}</Text>
+                    <CustomText
+                        size={17} weight={'bold'} color={colors.white} lineHeight={26} textAlign={'center'}
+                        letterSpacing={0.02}>
+                        {item.name[0]}
+                    </CustomText>
                 </View>
             );
         }
@@ -40,22 +45,31 @@ const ChatItem = ({item}) => {
         <Pressable style={styles.container} onPress={onPressHandler}>
             {renderProfileImage()}
             <View style={styles.content}>
-                <Text style={[styles.name, item.unreadMessages && styles.boldText]}>{item.name}</Text>
+                <CustomText
+                    size={15} weight={item.unreadMessages && 'bold'} color={colors.onSurface} lineHeight={24}
+                    textAlign={'left'} letterSpacing={0.02}
+                    customStyle={{marginBottom: 1}}>
+                    {item.name}
+                </CustomText>
                 <View style={styles.unreadMessages}>
 
                     {item.unreadMessages &&
                         <Badge text={item.unreadMessages > 9 ? "+9" : item.unreadMessages}
                                width={18} height={14} badgeStyle={{marginRight: 3}} fontSize={10}/>
                     }
-
-                    <Text
-                        style={[styles.message, item.unreadMessages && {color: colors.onSurface}]}>{item.message}
-                    </Text>
+                    <CustomText
+                        size={13} weight={'bold'} color={item.unreadMessages ? colors.onSurface : colors.onSurfaceLow}
+                        lineHeight={20} textAlign={'left'}>
+                        {item.message}
+                    </CustomText>
                 </View>
 
             </View>
             <View style={styles.rightSection}>
-                <Text style={styles.time}>{item.time}</Text>
+                <CustomText
+                    size={9} weight={'bold'} color={colors.onSurfaceLow} lineHeight={16} textAlign={'left'}>
+                    {item.time}
+                </CustomText>
                 {item.pinned &&
                     <KhiyabunIcons name="circle-pin-bold" size={16} color={colors.onSurfaceLow} style={styles.pin}/>}
             </View>
@@ -109,58 +123,21 @@ const useThemedStyles = () => {
             justifyContent: 'center',
             alignItems: 'center',
         },
-        profilePlaceholderText: {
-            fontSize: 18,
-            fontWeight: "700",
-            lineHeight: 26,
-            textAlign: "center",
-            letterSpacing: 0.02,
-            color: colors.white,
-        },
         unreadMessages: {
             flexDirection: "row",
             alignItems: "center",
-        },
-        boldText: {
-            //styleName: Title/Medium;
-            fontFamily: 'dana-bold',
-            fontWeight: 'bold'
         },
         content: {
             flex: 1,
             marginLeft: 10,
             padding: 1,
         },
-        name: {
-            fontSize: 16,
-            fontWeight: "400",
-            lineHeight: 24,
-            textAlign: "left",
-            letterSpacing: 0.02,
-            marginBottom: 1,
-            color: colors.onSurface,
-        },
-        message: {
-            fontSize: 14,
-            fontWeight: "500",
-            lineHeight: 20,
-            textAlign: "left",
-            color: colors.onSurfaceLow,
-        },
         rightSection: {
             alignItems: 'flex-end',
-        },
-        time: {
-            fontSize: 10,
-            fontWeight: "500",
-            lineHeight: 16,
-            textAlign: "left",
-            color: colors.onSurfaceLow,
         },
         pin: {
             marginTop: 8,
         },
-
     });
 };
 

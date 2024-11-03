@@ -1,5 +1,5 @@
-import React, {useState} from "react";
-import {View, Text, StyleSheet} from "react-native"
+import React, {useEffect, useRef, useState} from "react";
+import {View, Text, StyleSheet, Platform} from "react-native"
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
 import {Linking} from 'react-native';
@@ -15,8 +15,11 @@ const LoginScreen = ({navigation}) => {
     const styles = useThemedStyles();
 
     const signInHandler = async () => {
-        navigation.navigate('LoginWithMobile');
+        navigation.navigate("LoginWithMobile");
+        if (Platform.OS !== 'android') window.history.pushState({}, 'LoginWithMobile');
     }
+
+
     return (
         <BaseLogin
             title={t("welcome")}
@@ -26,13 +29,17 @@ const LoginScreen = ({navigation}) => {
             <Button
                 onPress={signInHandler}
                 label={t('sign_in')}
+                styleText={{lineHeight:24}}
             />
             <View style={styles.notAccountWrapper}>
                 <Text style={styles.textNotAccount}>
                     {t('not_account')}
                 </Text>
                 <Button
-                    onPress={() => navigation.navigate('Register')}
+                    onPress={() => {
+                        navigation.navigate("Register");
+                        if (Platform.OS !== 'android') window.history.pushState({}, 'Register');
+                    }}
                     typeButton="full"
                     sizeButton="small"
                     colorButton="secondary"
@@ -52,10 +59,12 @@ const useThemedStyles = () => {
     return StyleSheet.create({
         notAccountWrapper: {
             flexDirection: "row",
-            marginTop: 10
+            marginTop: 10,
+            width: "100%",
+            justifyContent: "center"
         },
         textNotAccount: {
-            fontFamily: gStyles.fontMain.fontFamily,
+            ...gStyles.fontMain,
             color: colors.onSurface
         },
         singUpButton: {
@@ -65,7 +74,7 @@ const useThemedStyles = () => {
             height: "auto"
         },
         singUpText: {
-            fontFamily: gStyles.fontBold.fontFamily
+            ...gStyles.fontBold
         }
     });
 };

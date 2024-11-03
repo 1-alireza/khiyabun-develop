@@ -1,142 +1,119 @@
 import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, ScrollView, RefreshControl, Pressable, Text, Alert, Linking} from 'react-native';
+import {View, StyleSheet, ScrollView, RefreshControl} from 'react-native';
 import {useNavigation, useTheme} from "@react-navigation/native";
 import Calendar from "./Calendar";
 import DailyAdvice from "./DailyAdvice";
-import TimeClock from "./TimeClock";
+import LatestWorkLog from "./LatestWorkLog";
 import Requests from "./Requests";
 import News from "./News";
 import Flags from "./Flags";
 import Birthday from "./Birthday";
 import ArticleAndPodcast from "./ArticleAndPodcast";
-import {getRequest} from "../../utils/sendRequest";
+import {getRequest, putRequest} from "../../utils/sendRequest";
 import {receiveProfileData} from "../../redux/actions/profileAction";
-import {errorHandling} from "../../utils/errorHandling";
-import Meeting from "./Meeting";
-import Task from "./Task";
-import Deal from "./Deal";
-import Vote from "./Vote";
 import {useDispatch, useSelector} from 'react-redux';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {TOKEN_KEY} from "../../utils/constant";
-
-import * as Notifications from 'expo-notifications';
 import {usePushNotifications} from "../../../usePushNotifications";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AddTeamSheet from "../Team/AddTeamSheet";
+
+// import Meeting from "./Meeting";
+// import Task from "./Task";
+// import Deal from "./Deal";
+// import Vote from "./Vote";
+
+
+
 
 const HomeScreen = () => {
-    const navigation = useNavigation()
+    const dispatch = useDispatch();
+    const userToken = useSelector(state => state.login.token);
     const {colors} = useTheme();
+    const navigation = useNavigation();
     const [refreshing, setRefreshing] = useState(false);
-    const [notifications, setNotifications] = useState(0);
-    const {profileData} = useSelector((state) => state.profile); // Access the slice state
-    const dispatch = useDispatch();// Access the slice state
-
+    const [notificationsCount, setNotificationsCount] = useState(0);
     const {expoPushToken, notification} = usePushNotifications();
-    const data = JSON.stringify(notification, undefined, 2);
-
+    const [isVisible, setIsVisible] = useState(false)
+    const [haveTeam, setHaveTeam] = useState(true)
 
     useEffect(() => {
-        const configureNotifications = async () => {
-            const storedPermission = await AsyncStorage.getItem('notificationPermission');
-
-            if (storedPermission === 'false') {
-                return;
-            }
-
-            const token = await requestPushNotificationPermissions();
-            setExpoPushToken(token);
-
-            Notifications.setNotificationHandler({
-                handleNotification: async () => ({
-                    shouldShowAlert: true,
-                    shouldPlaySound: false,
-                    shouldSetBadge: false,
-                }),
-            });
-        };
-
-        configureNotifications();
+        getTeams()
     }, []);
 
-    const requestPushNotificationPermissions = async () => {
-        try {
-            const {status} = await Notifications.getPermissionsAsync();
-            console.log("Current Notifications status:", status);
 
-            if (status === 'granted') {
-                const token = await Notifications.getExpoPushTokenAsync();
-                await AsyncStorage.setItem('notificationPermission', 'true');
-                setExpoPushToken(token.data);
-                return token.data;
-            } else if (status === 'undetermined') {
-                const {status: newStatus} = await Notifications.requestPermissionsAsync();
-                if (newStatus === 'granted') {
-                    const token = await Notifications.getExpoPushTokenAsync();
-                    setExpoPushToken(token.data);
-                    return token.data;
-                } else {
-                    await AsyncStorage.setItem('notificationPermission', 'false');
-                    return null;
-                }
-            } else {
-                await AsyncStorage.setItem('notificationPermission', 'false');
-                return null;
+    const openSheet = () => setIsVisible(true)
+    const closeSheet = () => setIsVisible(false)
+
+    const getTeams = async () => {
+        let res = await getRequest("profile/current_teams", {}, userToken)
+        if (res.statusCode === 200){
+            if(res.data.length==0){
+                console.log(478)
+                setHaveTeam(false)
+              openSheet()
             }
-        } catch (error) {
-            console.error("Error requesting push notification permissions:", error);
-            await AsyncStorage.setItem('notificationPermission', 'false');
-            return null;
+        }
+        console.log("user Teams", res)
+    }
+
+    const getNotificationsCount = async () => {
+        const res = await getRequest("notifications/count", {}, userToken);
+        if (res.statusCode === 200) {
+            return res.data;
+        } else {
+            throw new Error('Failed to get notifs count, status code: ' + res.statusCode);
         }
     };
 
-    const promptUserToOpenSettings = () => {
-        Alert.alert(
-            'Notification Permissions Required',
-            'We need notification permissions to notify you about important updates. Please enable them in your app settings.',
-            [
-                {
-                    text: 'Open Settings',
-                    onPress: () => Linking.openSettings() // Open app settings
-                },
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                }
-            ]
-        );
-    };
-
-    const sendPushNotification = async (token) => {
-        const message = {
-            to: token,
-            sound: 'default',
-            title: 'Test Notification',
-            body: 'This is a test notification',
-            data: {someData: 'goes here'},
-        };
-
-        await fetch('https://exp.host/--/api/v2/push/send', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(message),
-        });
-    };
-
     useEffect(() => {
-        setNotifications(10);
-        navigation.setParams({badgeCount: notifications});
-    }, [notifications]);
+        const fetchData = async () => {
+            try {
+                const res = await getNotificationsCount();
+                setNotificationsCount(res.count);
+            } catch (error) {
+                console.error('Error fetching NotificationsCount:', error);
+            }
+        };
+        fetchData();
+    }, []);
+    useEffect(() => {
+        navigation.setParams({badgeCount: notificationsCount});
+    }, [notificationsCount]);
 
     const getProfileData = () => {
-        dispatch(receiveProfileData("profile")); // Dispatch the async action
+        let data = {
+            api: "profile",
+            token: userToken
+        }
+        dispatch(receiveProfileData(data));
+
     };
 
     useEffect(() => {
-        getProfileData(); // Fetch profile data when the component mounts
-    }, [dispatch]); // Make sure to include dispatch in dependency array
+        getProfileData();
+    }, [dispatch]);
+
+    const setNotificationToken = async (token) => {
+        const storedToken = await AsyncStorage.getItem('notificationToken');
+        console.log("stored NT", storedToken);
+        if (storedToken) return;
+
+        const body = {"pushToken": token};
+        try {
+            const res = await putRequest(`profile/push_token`, body, userToken);
+            if (res.statusCode === 200) {
+                await AsyncStorage.setItem('notificationToken', token);
+            }
+        } catch (e) {
+            console.error("an error happened during setting NT:", e)
+        }
+    };
+
+    useEffect(() => {
+        if (expoPushToken) {
+            setNotificationToken(expoPushToken.data)
+        }
+    }, [expoPushToken]);
+
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -146,6 +123,7 @@ const HomeScreen = () => {
     };
 
     return (
+        <>
         <ScrollView contentContainerStyle={styles.scrollViewContent}
                     refreshControl={
                         <RefreshControl
@@ -154,10 +132,9 @@ const HomeScreen = () => {
                             colors={[colors.primary]}
                             progressBackgroundColor={colors.surfaceContainerLowest}/>}>
             <View>
-                {expoPushToken && <Text style={{color: "red"}}>{expoPushToken?.data}</Text>}
                 <Calendar/>
                 <DailyAdvice/>
-                <TimeClock/>
+                <LatestWorkLog/>
                 {/*<Meeting/>*/}
                 {/*<Task/>*/}
                 <Requests/>
@@ -170,6 +147,9 @@ const HomeScreen = () => {
             </View>
 
         </ScrollView>
+            <AddTeamSheet onClose={closeSheet} isVisible={isVisible} haveTeam={haveTeam}/>
+        </>
+
     );
 }
 

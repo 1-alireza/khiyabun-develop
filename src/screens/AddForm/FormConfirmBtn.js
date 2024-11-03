@@ -6,25 +6,40 @@ import Button from "../../components/Button";
 import React, {useState} from "react";
 import {useUploadFile} from "../../utils/uploadMedia";
 import {useSelector} from "react-redux";
-import CustomProgressBar from "../../components/Progressbar";
+import {errorHandling} from "../../utils/errorHandling";
+import * as ImagePicker from "expo-image-picker";
 
-export default function FormConfirmBtn(){
+export default function FormConfirmBtn({setProgress}){
     const {t, i18n} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
     const { uploadFile } = useUploadFile();
     const uploadState = useSelector((state) => state.upload);
-    const [progress, setProgress] = useState(0);
     const [uploadStatus, setUploadStatus] = useState('');
     const handleUpload = async () => {
+        const res = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.All,
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 1,
+                    cameraType: "front"
+                });
+        const filename = res.assets[0].uri.split('/').pop();
+        const file = {
+            uri: res.assets[0].uri,
+            name: filename,
+            type: res.assets[0].mimeType || 'application/octet-stream',
+        };
+        console.log(file)
 
-        const result = await uploadFile(setProgress,"image");
+        const result = await uploadFile(setProgress,file);
         if (result.success) {
-            console.log("uplaod res",result)
-            Alert.alert("Upload Successful", "File uploaded successfully!");
+            console.log("uplaod res",result.data.data)
+            errorHandling(result.data, "confirm")
         } else {
-            Alert.alert("Upload Error", result.error);
+            errorHandling(result.data, "error")
         }
+        setProgress(0);
     };
 
 

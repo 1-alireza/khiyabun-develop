@@ -29,16 +29,17 @@ const loginSlice = createSlice({
             .addCase(userLogin.fulfilled, (state, action) => {
                 state.is_loading = false;
                 let response = action.payload;
-                if (response.statusCode === 200) {
+                if (response.statusCode >= 200 && response.statusCode < 300) {
                     state.is_login = true;
                     state.token = response.data.token;
-                } else {
-                    errorHandling(response,"error");
+                }
+                else {
+                    console.log("error in login page",response);
                 }
             })
             .addCase(userLogin.rejected, (state) => {
                 console.log("i have error");
-                errorHandling(response,"error");
+                // errorHandling(response,"error");
                 state.is_loading = false;
             })
     }

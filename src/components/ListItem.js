@@ -3,6 +3,8 @@ import KhiyabunIcons from "./KhiyabunIcons";
 import React from "react";
 import {useTheme} from "@react-navigation/native";
 import ExternalLink from "./ExternalLink";
+import gStyles from "../global-styles/GlobalStyles"
+import CustomText from "./CustomText";
 
 
 function ListItem({text, iconName, place, isExternalLink=true,onPress}) {
@@ -16,9 +18,9 @@ function ListItem({text, iconName, place, isExternalLink=true,onPress}) {
                     style={place === "middle" ? styles.appOption : place === "first" ? styles.appOptionFirst : styles.appOptionLast}>
                     <View style={styles.textWrapper}>
                         <KhiyabunIcons name={iconName} size={24} style={styles.icon}/>
-                        <Text style={styles.appActionText}>
+                        <CustomText size={16} customStyle={styles.appActionText} lineHeight={24} color={colors.onSurfaceHigh}>
                             {text}
-                        </Text>
+                        </CustomText>
                     </View>
                 </View>
             </ExternalLink>
@@ -27,9 +29,9 @@ function ListItem({text, iconName, place, isExternalLink=true,onPress}) {
                     style={place === "middle" ? styles.appOption : place === "first" ? styles.appOptionFirst : styles.appOptionLast} onPress={onPress}>
                     <View style={styles.textWrapper}>
                         <KhiyabunIcons name={iconName} size={24} style={styles.icon}/>
-                        <Text style={styles.appActionText}>
+                        <CustomText size={16} customStyle={styles.appActionText} lineHeight={24} color={colors.onSurfaceHigh}>
                             {text}
-                        </Text>
+                        </CustomText>
                     </View>
                 </Pressable>
         }
@@ -80,12 +82,7 @@ const useThemedStyles = (colors) => {
             height: 56,
         },
         appActionText: {
-            fontWeight: "400",
-            fontSize: 16,
-            lineHeight: 24,
-            fontFamily: "dana-regular",
             paddingHorizontal: 8,
-            color: colors.onSurfaceHigh
         },
         icon: {
             color: colors.secondary

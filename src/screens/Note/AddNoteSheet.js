@@ -9,12 +9,24 @@ import {AudioRecorder} from "./AudioRecorder";
 import {TabView, TabBar} from 'react-native-tab-view';
 import {postRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
+import {useSelector} from "react-redux";
+import gStyles from "../../global-styles/GlobalStyles";
+import CustomText from "../../components/CustomText";
+import CustomModal from "../../components/CustomModal";
+import {CheckBox} from "@rneui/themed";
 
-const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
+const addNoteSheet = ({isVisible, onClose, onChangeCallback, status}) => {
+    const userToken = useSelector(state => state.login.token);
     const {t, i18n} = useTranslation();
+    const [checked, setChecked] = useState(false);
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
     const [index, setIndex] = useState(0);
+    const [val, setVal] = useState('');
+    const [voiceData, setVoiceData] = useState({});
+    const [titleVal, setTitleVal] = useState('');
+    const [noteType, setNoteType] = useState('text');
+    const [isWarningModal, setIsWarningModal] = useState(false)
     const valRef = useRef('');
     const titleValRef = useRef('');
     const [routes] = useState([
@@ -26,13 +38,28 @@ const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
             case 'text':
                 return <TextTab/>;
             case 'voice':
-                return <AudioRecorder onChangeCallback={getVoiceNoteData} type={"add"}
-                                      onClose={onClose}/>;
+                return <AudioRecorder onChangeCallback={onChangeCallback} type={"add"}
+                                      onClose={onClose} status={status} />;
             default:
                 return null;
         }
     };
 
+    const toggleWarningModal = () => setIsWarningModal(!isWarningModal);
+
+    const handleTabChange = (index) => {
+        setIndex(index);
+
+        if (index === 1) {
+            setNoteType("voice")
+        } else {
+            // console.log("DFf")
+            setNoteType("text")
+        }
+        // console.log('Current tab index:', index);
+        // console.log('Current type:', noteType);
+        // You can add any additional logic you wish to execute when the tab changes
+    };
 
     const renderTabBar = props => (
         <TabBar
@@ -50,17 +77,16 @@ const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
         />
     );
 
-    const addNote = async () => {
-
+    const addNote = async (type) => {
+        let body = {
+            title: titleValRef.current,
+            text: valRef.current,
+            type: "TEXT",
+            isPrivate: status
+        }
         try {
-            const body = {
-                title: titleValRef.current,
-                text: valRef.current,
-                type: "TEXT",
-                isPrivate:status
-            }
             console.log(body)
-            let res = await postRequest("notes", body)
+            let res = await postRequest("notes", body, userToken)
             console.log("added Text Note", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -73,6 +99,7 @@ const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
             errorHandling(res, "error")
         }
         onChangeCallback()
+        toggleWarningModal()
     }
 
     const getInputValue = (value) => {
@@ -81,6 +108,9 @@ const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
     const getTitleInputValue = (value) => {
         titleValRef.current = value;
     }
+
+    const toggleCheckbox = () => setChecked(!checked);
+
 
     const getVoiceNoteData = (uri, title) => {
         setVal(uri)
@@ -102,7 +132,8 @@ const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
                        multiline={true}
                        linesNumber={20}
                        customStyles={{height: 150}}
-                       placeholder={t("note_request")}/>
+                       placeholder={t("note_request")}
+                />
                 <View style={styles.sheetOptions}>
                     <Button label={t("cancel")}
                             sizeButton={"small"}
@@ -116,7 +147,7 @@ const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
                             style={styles.selectButton}
                             styleText={styles.selectButtonText}
                             width={65}
-                            onPress={addNote}
+                            onPress={() => addNote("")}
                             isBorder={true}
                             borderColor={colors.primaryOutline}/>
                 </View>
@@ -126,33 +157,78 @@ const addNoteSheet = ({isVisible, onClose, onChangeCallback,status}) => {
 
 
     return (
-        <Sheet isOpen={isVisible}
-               contentWrapperStyle={styles.wrapper}
-               onCloseCallBack={() => setIndex(0)}
-               fitContent={true} onClose={onClose}
-               snapPoint={500}>
-            <View style={styles.sheetHeader}>
-                <Text style={styles.sheetHeaderText}>{t("new_note")}</Text>
-            </View>
-            <TabView
-                navigationState={{index, routes}}
-                renderScene={renderScene}
-                onIndexChange={setIndex}
-                style={{
-                    height: 400,
-                }}
-                sceneContainerStyle={{
-                    height: "100%"
-                }}
-                initialLayout={{width: Dimensions.get('window').width}} // Use the full screen width
-                renderTabBar={renderTabBar}
-            />
-        </Sheet>
 
+        <>
+            <Sheet isOpen={isVisible}
+                   contentWrapperStyle={styles.wrapper}
+                   onCloseCallBack={() => setIndex(0)}
+                   fitContent={true} onClose={onClose}
+                   snapPoint={500}>
+                <View style={styles.sheetHeader}>
+                    <CustomText lineHeight={16} weight={"bold"} color={colors.onSurface}>{t("new_note")}</CustomText>
+                </View>
+                <TabView
+                    navigationState={{index, routes}}
+                    renderScene={renderScene}
+                    onIndexChange={handleTabChange}
+                    style={{
+                        height: 400,
+                    }}
+                    sceneContainerStyle={{
+                        height: "100%"
+                    }}
+                    initialLayout={{width: Dimensions.get('window').width}} // Use the full screen width
+                    renderTabBar={renderTabBar}
+                />
+            </Sheet>
+            <CustomModal type={"warning"}
+                         isVisible={isWarningModal}
+                         hasDoubleBtn={false}
+                         onClose={toggleWarningModal}
+                         width={80}
+                         disabled={!checked}
+                         actionButtonText={t("confirm")}
+                         modalBody={<PrivateModal toggleCheckbox={toggleCheckbox} checked={checked}/>}
+                         modalTitle={t("status_warning")}
+                         actionCallback={toggleWarningModal}
+            />
+        </>
 
     )
 
 }
+const PrivateModal = ({toggleCheckbox, checked}) => {
+    const {t, i18n} = useTranslation();
+    const {colors} = useTheme();
+    const styles = useThemedStyles(colors)
+
+
+    return (
+        <View>
+            <CustomText size={14} lineHeight={20} textAlign={"justify"} color={colors.onSurfaceLow}>
+                {t("status_warning")}
+            </CustomText>
+            <View style={styles.deleteWrapper}>
+                <CheckBox
+                    iconRight={false}
+                    size={20}
+                    checked={checked}
+                    onPress={toggleCheckbox}
+                    iconType="material-community"
+                    checkedIcon="checkbox-marked"
+                    uncheckedIcon="checkbox-blank-outline"
+                    title={t("do_not_show")}
+                    checkedColor={colors.primary}
+                    containerStyle={styles.checkBox}
+                    labelStyle={styles.deleteText}
+                    fontFamily={gStyles.fontMain.fontFamily}
+                />
+
+            </View>
+        </View>
+    )
+}
+
 
 const useThemedStyles = (colors) => {
     return StyleSheet.create({
@@ -179,7 +255,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         cancelButton: {
@@ -192,12 +268,13 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         sheetHeader: {
             backgroundColor: colors.surfaceContainerLowest,
             marginHorizontal: 16,
+            paddingTop:20,
             marginVertical: 8,
             justifyContent: "center",
             alignItems: "center"
@@ -205,7 +282,7 @@ const useThemedStyles = (colors) => {
         sheetHeaderText: {
             paddingHorizontal: 16,
             color: colors.onSurface,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             lineHeight: 24
         },
         textNoteWrapper: {
@@ -214,7 +291,39 @@ const useThemedStyles = (colors) => {
             width: "100%",
             height: "100%",
             backgroundColor: colors.surfaceContainerLowest
-        }
+        },
+        secondaryText: {
+            fontSize: 14,
+            lineHeight: 20,
+            color: colors.onSurfaceLow,
+            fontFamily: gStyles.fontMain.fontFamily,
+            textAlign: "justify"
+        },
+        checkBox: {
+            flex: 1,
+            backgroundColor: "transparent",
+            borderWidth: 0,
+            padding: 0,
+            margin: 0,
+            marginRight: 0,
+            marginLeft: 0,
+            marginBottom: 0
+        },
+        deleteText: {
+            fontSize: 14,
+            lineHeight: 24,
+            width: "90%",
+            color: colors.onSurfaceHigh,
+            fontFamily: gStyles.fontMain.fontFamily,
+            textAlign: "justify"
+        },
+        deleteWrapper: {
+            flexDirection: "row",
+            alignItems: "stretch",
+            justifyContent: "flex-end",
+            marginVertical: 10,
+            paddingRight: 10
+        },
 
     });
 

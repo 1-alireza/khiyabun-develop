@@ -5,7 +5,14 @@ import CustomIcon from "../components/KhiyabunIcons";
 export default function IconList() {
     return (
         <ScrollView style={styles.container}>
-            <View>
+            <View><View style={styles.row}>
+                <View style={styles.item}>
+                    <Text>
+                        <CustomIcon name="Logo" size={30} color="#4A75F5"/>
+                    </Text>
+                    <Text style={[styles.title]}>Logo</Text>
+                </View>
+            </View>
                 <View style={styles.row}>
                     <View style={styles.item}>
                         <Text>
@@ -512,9 +519,9 @@ export default function IconList() {
                 <View style={styles.row}>
                     <View style={styles.item}>
                         <Text>
-                            <CustomIcon name="building-outline" size={20}/>
+                            <CustomIcon name="buildings-outline" size={20}/>
                         </Text>
-                        <Text style={styles.title}>building-outline</Text>
+                        <Text style={styles.title}>buildings-outline</Text>
                     </View>
                     <View style={styles.item}>
                         <Text>
@@ -1067,6 +1074,241 @@ export default function IconList() {
                         <Text style={[styles.title]}>direct-notification-bold</Text>
                     </View>
                 </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="star-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>star-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="star-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>star-bold</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="refresh-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>refresh-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="refresh-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>refresh-bold</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="slash-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>slash-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="slash-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>slash-bold</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="global-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>global-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="global-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>global-bold</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="dome-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>dome-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="dome-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>dome-bold</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="satellite-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>satellite-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="satellite-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>satellite-bold</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="dollar-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>dollar-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="dollar-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>dollar-bold</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="verify-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>verify-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="verify-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>verify-bold</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="edit-3-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>edit-3-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="edit-3-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>edit-3-bold</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="minus-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>minus-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="minus-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>minus-bold</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="crown-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>crown-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="crown-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>crown-bold</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="ranking-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>ranking-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="ranking-bold" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>ranking-bold</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="aquarius-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>aquarius-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="aries-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>aries-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="cancer-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>cancer-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="gemini-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>gemini-outline</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="leo-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>leo-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="libra-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>libra-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="pisces-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>pisces-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="sagittarius-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>sagittarius-outline</Text>
+                    </View>
+                </View>
+                <View style={styles.row}>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="scorpio-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>scorpio-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="taurus-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>taurus-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="virgo-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>virgo-outline</Text>
+                    </View>
+                    <View style={styles.item}>
+                        <Text>
+                            <CustomIcon name="pisces-outline" size={20}/>
+                        </Text>
+                        <Text style={[styles.title]}>pisces-outline</Text>
+                    </View>
+                </View>
+
             </View>
         </ScrollView>
     )

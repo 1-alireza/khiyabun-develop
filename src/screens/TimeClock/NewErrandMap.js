@@ -1,37 +1,49 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, {useState, useEffect, useRef} from 'react';
+import {View, StyleSheet, Button} from 'react-native';
+import {WebView} from 'react-native-webview';
 import * as Location from 'expo-location';
 
+let path = "";
 const NewTimeClockErrandMap = () => {
+    const [url, setUrl] = useState('https://khiyabun.ir/track');
+    const [error, setError] = useState(false);
     const [locationHistory, setLocationHistory] = useState([]);
-    const [mapHtml, setMapHtml] = useState('');
+    const [location, setLocation] = useState({ latitude: null, longitude: null });
+    const previousLocationRef = useRef({ latitude: null, longitude: null });
     const webViewRef = useRef(null);
 
     useEffect(() => {
         const watchLocation = async () => {
-            // Request permission to access the device location
-            let { status } = await Location.requestForegroundPermissionsAsync();
+            let {status} = await Location.requestForegroundPermissionsAsync();
+            // console.log("status",status);
             if (status !== 'granted') {
                 console.log('Permission to access location was denied');
                 return;
             }
 
-            // Watch the position
             const subscription = await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.High,
-                    timeInterval: 5000, // minimum interval between updates
-                    distanceInterval: 0.2, // minimum distance between updates in meters
+                    timeInterval: 5000,
+                    distanceInterval: 2,
                 },
                 (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setLocationHistory((prev) => [...prev, { latitude, longitude }]);
+                    const { latitude, longitude, accuracy, speed } = position.coords;
+                    // بررسی دقت GPS و تغییر مختصات
+                    if (accuracy <= 10 && (
+                        latitude !== previousLocationRef.current.latitude ||
+                        longitude !== previousLocationRef.current.longitude
+                    )) {
+                        setLocation({ latitude, longitude });
+                        previousLocationRef.current = { latitude, longitude }; // به‌روزرسانی مختصات قبلی
+
+                        setLocationHistory((prev) => [...prev, {latitude, longitude, accuracy, speed}]);
+                    }
                 }
             );
 
             return () => {
-                subscription.remove(); // Cleanup subscription on unmount
+                subscription.remove();
             };
         };
 
@@ -39,16 +51,75 @@ const NewTimeClockErrandMap = () => {
     }, []);
 
     useEffect(() => {
-        generateMapHtml(locationHistory);
+        if (locationHistory.length > 0) {
+            const {latitude, longitude} = locationHistory[locationHistory.length - 1];
+            sendMapMatchingRequest(latitude,longitude);
+            path += ";";
+            sendMessageToWebView();
+        }
     }, [locationHistory]);
 
+    const handleMessage = (event) => {
+        const data = event.nativeEvent.data;
+        console.log("Data received from WebView:", data);
+        // حالا می‌توانید داده را در state یا هر جا دیگری ذخیره کنید
+    };
+    const handleLoadEnd = () => {
+        // Optional: You can send an initial message or log when the WebView is loaded
+        console.log("WebView has finished loading");
+    };
+    const sendMessageToWebView = () => {
+        const {latitude, longitude,accuracy,speed} = locationHistory[locationHistory.length - 1];
+        const message = JSON.stringify({type: 'locationUpdate', latitude, longitude, accuracy,speed});
+        if (webViewRef.current) {
+            webViewRef.current.postMessage(message);
+        }
+    };
+    const handleReload = () => {
+        setError(false);
+        setUrl('https://khiyabun.ir/track'); // URL را دوباره تنظیم کنید
+    };
+
+    async function sendMapMatchingRequest(lat , long) {
+        path += long+","+lat;
+        console.log("path",path);
+        // let response = await get(`match/v1/walking/${path}?geometries=geojson`, "map");
+        console.log("locationHistory.length",locationHistory.length);
+        if(locationHistory.length > 0) {
+            console.log("im here");
+            let response = await fetch(`http://78.109.199.54/match/v1/walking/${path}?geometries=geojson`, {
+                method: 'GET',
+                headers: {
+                    'Api-Key': "service.4c7af31b20c44b16920cce89483caa15",
+                }
+            });
+            console.log(response)
+            if (!response.ok) {
+                throw new Error(`GET request failed: ${response.status}`);
+            }
+            response = response.json();
+            let points = response.matchings[0].geometry.coordinates;
+            console.log(points);
+        }
+        else {
+            path += ";";
+        }
+        // setData(response.snappedPoints);
+    }
+
+
+
+    // useEffect(() => {
+    //     generateMapHtml(locationHistory);
+    // }, [locationHistory]);
+
     const generateMapHtml = (locations) => {
-        const center = locations.length > 0 ? locations[locations.length - 1] : { latitude: 0, longitude: 0 };
+        const center = locations.length > 0 ? locations[locations.length - 1] : {latitude: 0, longitude: 0};
         const polyline = locations.map((loc) => [loc.latitude, loc.longitude]);
         const polylineString = JSON.stringify(polyline);
 
         // Define a static end location for routing (you can change this)
-        const endLocation = { latitude: 37.7749, longitude: -122.4194 }; // Example: San Francisco
+        const endLocation = {latitude: 37.7749, longitude: -122.4194}; // Example: San Francisco
 
         const html = `  
       <!DOCTYPE html>  
@@ -120,26 +191,47 @@ const NewTimeClockErrandMap = () => {
         setMapHtml(html);
     };
 
-    useEffect(() => {
-        if (locationHistory.length > 0) {
-            const { latitude, longitude } = locationHistory[locationHistory.length - 1];
-            const message = JSON.stringify({ type: 'locationUpdate', latitude, longitude });
-            webViewRef.current?.postMessage(message);
-        }
-    }, [locationHistory]);
-
     return (
         <View style={styles.container}>
-            <WebView
-                ref={webViewRef}
-                originWhitelist={['*']}
-                source={{ html: mapHtml }}
-                style={{ flex: 1 }}
-                onMessage={(event) => {
-                    console.log(event.nativeEvent.data);
-                }}
-                javaScriptEnabled={true}
-            />
+            {error ? (
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                    <Button title="Reload" onPress={handleReload}/>
+                </View>
+            ) : (
+                <WebView
+                    ref={webViewRef}
+                    originWhitelist={['*']}
+                    cacheEnabled={false}
+                    source={{uri: url}}
+                    onHttpError={(syntheticEvent) => {
+                        console.log(syntheticEvent);
+                        const { nativeEvent } = syntheticEvent;
+                        console.log('HTTP error: ', nativeEvent);
+                    }}
+                    onError={(syntheticEvent) => {
+                        setError(true)
+                        const { nativeEvent } = syntheticEvent;
+                        console.log('WebView error: ', nativeEvent);
+                    }}
+                    style={{flex: 1}}
+                    onMessage={handleMessage}
+                    javaScriptEnabled={true}
+                    onLoadEnd={handleLoadEnd} // Optional: Log when loading ends
+                />
+            )}
+
+            {/*<WebView*/}
+            {/*    ref={webViewRef}*/}
+            {/*    originWhitelist={['*']}*/}
+            {/*    source={{ html: mapHtml }}*/}
+            {/*    style={{ flex: 1 }}*/}
+            {/*    onMessage={(event) => {*/}
+            {/*        console.log(event.nativeEvent.data);*/}
+            {/*    }}*/}
+            {/*    javaScriptEnabled={true}*/}
+            {/*/>*/}
+            {/*<Button title="Send Message" onPress={sendMessageToWebView} />*/}
+
         </View>
     );
 };

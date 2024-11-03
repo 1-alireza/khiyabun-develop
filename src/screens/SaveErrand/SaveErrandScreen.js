@@ -2,11 +2,12 @@ import Input from "../../components/Input";
 import CustomDropdown from "../../components/CustomDropdown";
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import {ImageBackground, StyleSheet, View, Text, Dimensions} from "react-native";
+import {ImageBackground, StyleSheet, View, Text, Dimensions, Platform} from "react-native";
 import {CheckBox} from "@rneui/themed";
 import React, {useState} from "react";
 import Button from "../../components/Button";
 import * as DocumentPicker from 'expo-document-picker';
+import useWebBackButtonHandler from "../../navigation/hardwareBackHandler";
 
 const errandOptions = [
     {label: "Errand", value: "Errand"},
@@ -96,8 +97,10 @@ export default function SaveErrandScreen({navigation}) {
                 <Input placeholder={t("attach_note_errand")} label={t("note")}/>
             </View>
             <Button
-                onPress={() =>
-                    navigation.navigate("ErrandDetails")}
+                onPress={() => {
+                    navigation.navigate("ErrandDetails");
+                    if (Platform.OS !== 'android') window.history.pushState({}, 'ErrandDetails');
+                }}
                 label={t("confirm")}
                 sizeButton="large"
                 width={90}

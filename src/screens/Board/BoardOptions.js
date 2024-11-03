@@ -2,15 +2,16 @@ import { Text ,StyleSheet,Pressable} from "react-native"
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import { useTheme } from "@react-navigation/native";
 import gStyles from "../../global-styles/GlobalStyles";
+import CustomText from "../../components/CustomText";
 function BoardOptions({text,iconName,onPressHandler}) {
     const { colors } = useTheme();
     const styles = useThemedStyles(colors);
     return (
         <Pressable style={styles.boardOptions} onPress={onPressHandler}>
             <KhiyabunIcons name={iconName} size={24} style={styles.boardOptionsIcons} />
-            <Text style={styles.boardOptionsText}>
+            <CustomText size={12} lineHeight={16} weight={"bold"} color={colors.onSurface}>
                 {text}
-            </Text>
+            </CustomText>
         </Pressable>
     )
 }

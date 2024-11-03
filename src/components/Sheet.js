@@ -1,8 +1,9 @@
 // Sheet.js
 import React, {useRef, useEffect} from 'react';
-import {View, StyleSheet, ScrollView} from 'react-native';
+import {View, StyleSheet, Text, Platform} from 'react-native';
 import {Modalize} from 'react-native-modalize';
 import {useTheme} from "@react-navigation/native";
+import Button from "./Button";
 
 const Sheet = ({
                    isOpen,
@@ -18,17 +19,22 @@ const Sheet = ({
                    scrollable = false,
                    onOpenCallBack,
                    children,
-                   fitContent = false
+                   fitContent = false,
+                   footerComponent,
+                   onBackButtonPress
                }) => {
+
     const modalRef = useRef(null);
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
     const openModal = async () => {
         await modalRef.current?.open();
     };
+
     const closeModal = () => {
         modalRef.current?.close();
     };
+
     // Effect to handle open/close based on isOpen prop
     useEffect(() => {
         if (isOpen) {
@@ -38,11 +44,13 @@ const Sheet = ({
         }
     }, [isOpen]); // Only re-run effect if isOpen changes
 
-    return (<>
+    return (
+        <>
             {fitContent ?
                 <Modalize
                     ref={modalRef}
                     onClosed={onClose}
+                    avoidKeyboard={true}
                     modalStyle={modalStyle ? modalStyle : styles.modal}
                     snapPoint={snapPoint}
                     withOverlay={isWithOverlay}
@@ -52,8 +60,10 @@ const Sheet = ({
                     onOpen={onOpenCallBack ? onOpenCallBack : ""}
                     onLayout={() => console.log(123)}
                     avoidKeyboardLikeIOS={true}
+                    onBackButtonPress={onBackButtonPress}
                     disableScrollIfPossible={scrollable}
                     adjustToContentHeight={fitContent}
+                    FooterComponent={footerComponent}
                 >
                     <View style={contentWrapperStyle ? contentWrapperStyle : styles.content}>
                         {children}
@@ -63,6 +73,8 @@ const Sheet = ({
                 (<Modalize
                     ref={modalRef}
                     onClosed={onClose}
+                    avoidKeyboard={true}
+                    keyboardAvoidingBehavior={Platform.OS === "ios" ? "padding" : "height"}
                     modalStyle={modalStyle ? modalStyle : styles.modal}
                     snapPoint={snapPoint}
                     modalHeight={modalHeight}
@@ -73,7 +85,9 @@ const Sheet = ({
                     onOpen={onOpenCallBack ? onOpenCallBack : ""}
                     onLayout={() => console.log(123)}
                     avoidKeyboardLikeIOS={true}
+                    onBackButtonPress={onBackButtonPress}
                     disableScrollIfPossible={scrollable}
+                    FooterComponent={footerComponent}
                 >
                     <View style={contentWrapperStyle ? contentWrapperStyle : styles.content}>
                         {children}
@@ -81,7 +95,6 @@ const Sheet = ({
                 </Modalize>)
             }
         </>
-
 
     );
 };

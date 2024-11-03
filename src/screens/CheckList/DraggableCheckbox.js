@@ -1,9 +1,10 @@
-import DraggableFlatList, {ScaleDecorator} from "react-native-draggable-flatlist";
+import  {ScaleDecorator} from "react-native-draggable-flatlist";
 import {Pressable, StyleSheet, View} from "react-native";
 import {CheckBox} from "@rneui/themed";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import React from "react";
 import {useTheme} from "@react-navigation/native";
+import gStyles from "../../global-styles/GlobalStyles";
 
 
 function DraggableCheckbox({item, drag, isActive, deleteCallback, checkHandler, customStyle}) {
@@ -64,7 +65,7 @@ const useThemedStyles = (colors) => {
             fontSize: 14,
             lineHeight: 24,
             color: colors.onSurfaceHigh,
-            fontFamily: "dana-regular"
+            fontFamily:gStyles.fontMain.fontFamily
 
         },
         checkboxContainer: {

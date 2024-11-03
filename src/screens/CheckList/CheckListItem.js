@@ -1,26 +1,31 @@
 import KhiyabunIcons from "../../components/KhiyabunIcons";
-import {Text, View, StyleSheet, Pressable, Share, TouchableOpacity, I18nManager} from "react-native";
-import {useTheme} from "@react-navigation/native";
-import React, {useEffect, useState} from "react";
-import {CheckBox} from "@rneui/themed";
+import { Text, View, StyleSheet, Pressable, Share, TouchableOpacity, I18nManager } from "react-native";
+import { useTheme } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import { CheckBox } from "@rneui/themed";
 import {
     Menu,
     MenuOptions,
     MenuOption,
     MenuTrigger,
 } from 'react-native-popup-menu';
-import DraggableFlatList, {ScaleDecorator} from "react-native-draggable-flatlist";
+import DraggableFlatList, { ScaleDecorator } from "react-native-draggable-flatlist";
 import CustomModal from "../../components/CustomModal";
 import DraggableCheckbox from "./DraggableCheckbox";
-import {useTranslation} from "react-i18next";
+import { useTranslation } from "react-i18next";
 import jalaali from "jalaali-js";
-import {deleteRequest, putRequest} from "../../utils/sendRequest";
-import {errorHandling} from "../../utils/errorHandling";
+import { deleteRequest, putRequest } from "../../utils/sendRequest";
+import { errorHandling } from "../../utils/errorHandling";
+import { useSelector } from "react-redux";
+import gStyles from "../../global-styles/GlobalStyles";
+import CustomMenu from "../../components/customMenu";
+import CustomText from "../../components/CustomText";
 
 
-function CheckListItem({item, editCallback, onEditCallback}) {
-    const {colors} = useTheme();
-    const {t, i18n} = useTranslation();
+function CheckListItem({ item, editCallback, onEditCallback }) {
+    const userToken = useSelector(state => state.login.token);
+    const { colors } = useTheme();
+    const { t, i18n } = useTranslation();
     const styles = useThemedStyles(colors)
     const [checkboxes, setCheckboxes] = useState([item.items]);
     const [checked, setChecked] = useState(false);
@@ -79,7 +84,6 @@ function CheckListItem({item, editCallback, onEditCallback}) {
         }
     }
 
-
     const toggleModal = () => {
         setIsModalVisible(!isModalVisible);
     };
@@ -91,11 +95,10 @@ function CheckListItem({item, editCallback, onEditCallback}) {
 
     const toggleCheckbox = () => setChecked(!checked);
 
-
     const handleCheckboxChange = async (id) => {
         const targetCheckBox = checkboxes.find(item => item.id === id);
         try {
-            let res = await putRequest(`checklists/mark?checklistId=${item.objectId}&itemId=${id}&isDone=${!targetCheckBox.done}`)
+            let res = await putRequest(`checklists/mark?checklistId=${item.objectId}&itemId=${id}&isDone=${!targetCheckBox.done}`, {}, userToken)
             console.log("CheckboxChange", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -108,10 +111,27 @@ function CheckListItem({item, editCallback, onEditCallback}) {
         onEditCallback()
     };
 
-
-    const deleteItem = (id) => {
+    const deleteItem = async (id) => {
         const filteredData = checkboxes.filter(item => item.id !== id);
+        console.log(filteredData)
         setCheckboxes(filteredData)
+        try {
+            const body = {
+                title: item.title,
+                items: filteredData,
+            }
+            console.log(body)
+            let res = await putRequest(`checklists?id=${item.objectId}`, body, userToken)
+            console.log("checklist edited", res)
+            if (res.statusCode === 200) {
+                errorHandling(res, "confirm")
+            } else {
+                errorHandling(res, "warning")
+            }
+        } catch (e) {
+            errorHandling(res, "error")
+        }
+
     }
 
     const PrivateModal = () => {
@@ -131,6 +151,7 @@ function CheckListItem({item, editCallback, onEditCallback}) {
                         uncheckedIcon="checkbox-blank-outline"
                         title={t("do_not_show")}
                         checkedColor={colors.primary}
+                        fontFamily={gStyles.fontMain.fontFamily}
                         containerStyle={styles.checkBox}
                         textStyle={styles.deleteText}
                     />
@@ -143,7 +164,7 @@ function CheckListItem({item, editCallback, onEditCallback}) {
 
     const deleteCheckList = async () => {
         try {
-            let res = await deleteRequest(`checklists?id=${item.objectId}`)
+            let res = await deleteRequest(`checklists?id=${item.objectId}`, {}, userToken)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
             } else {
@@ -156,6 +177,7 @@ function CheckListItem({item, editCallback, onEditCallback}) {
         onEditCallback()
     }
 
+
     const DeleteCheckListModal = () => {
         return (
             <Text style={styles.logoutModalText}>
@@ -164,87 +186,96 @@ function CheckListItem({item, editCallback, onEditCallback}) {
         )
     }
 
-    const renderCheckBox = ({item, drag, isActive}) => <DraggableCheckbox item={item}
-                                                                          checkHandler={handleCheckboxChange}
-                                                                          deleteCallback={deleteItem} drag={drag}
-                                                                          isActive={isActive}/>
+
+    const renderCheckBox = ({ item, drag, isActive }) => <DraggableCheckbox item={item}
+        checkHandler={handleCheckboxChange}
+        deleteCallback={deleteItem} drag={drag}
+        isActive={isActive} />
+
+
+    const menuItems = [
+        {
+            text: "edit",
+            onSelect: () => editCallback(item),
+            icon: "edit-outline"
+        },
+        {
+            text: "share",
+            onSelect: onShare,
+            icon: "share-outline"
+        },
+        {
+            text: "Delete",
+            onSelect: toggleDeleteCheckListModal,
+            icon: "trash-outline",
+            style: styles.popUpOptionLast
+        },
+    ];
+
+
     return (
         <>
             <View style={styles.note}>
                 <View style={styles.noteHeader}>
-                    <Text style={styles.noteHeaderText}>
+                    <CustomText size={16} lineHeight={24} customStyle={styles.noteHeaderText} weight={"bold"} color={colors.onSurfaceHigh}>
                         {item.title}
-                    </Text>
+                    </CustomText>
+
                     <View style={styles.noteHeaderIcon}>
                         <Pressable onPress={() => {
                             toggleModal()
                         }}>
                             {
                                 isLocked && (
-                                    <KhiyabunIcons name={"lock-outline"} size={16} color={colors.onSurfaceLowest}/>
+                                    <KhiyabunIcons name={"lock-outline"} size={16} color={colors.onSurfaceLowest} />
 
                                 )
                             }
                             {
                                 !isLocked && (
-                                    <KhiyabunIcons name={"unlock-outline"} size={16} color={colors.onSurfaceLowest}/>
+                                    <KhiyabunIcons name={"unlock-outline"} size={16} color={colors.onSurfaceLowest} />
 
                                 )
                             }
 
                         </Pressable>
-                        <Menu>
-                            <MenuTrigger>
-                                <KhiyabunIcons name={"more-bold"} size={20} color={colors.onSurface}/>
-                            </MenuTrigger>
-                            <MenuOptions optionsContainerStyle={styles.popUp}>
-                                <MenuOption style={styles.popUpOption} onSelect={() => editCallback(item)}>
-                                    <KhiyabunIcons name={"edit-outline"} size={20} color={colors.onSurfaceHigh}/>
-                                    <Text style={styles.popUpOptionText}>{t("edit")}</Text>
-                                </MenuOption>
-                                <MenuOption style={styles.popUpOption} onSelect={() => onShare()}>
-                                    <KhiyabunIcons name={"share-outline"} size={20} color={colors.onSurfaceHigh}/>
-                                    <Text style={styles.popUpOptionText}>{t("share")}</Text>
-                                </MenuOption>
-                                <MenuOption style={styles.popUpOption} onSelect={toggleDeleteCheckListModal}>
-                                    <KhiyabunIcons name={"trash-outline"} size={20} color={colors.onSurfaceHigh}/>
-                                    <Text style={styles.popUpOptionText}>{t("Delete")}</Text>
-                                </MenuOption>
-                            </MenuOptions>
-                        </Menu>
+                        <CustomMenu items={menuItems} />
                     </View>
                 </View>
                 <DraggableFlatList
                     data={checkboxes}
                     renderItem={renderCheckBox}
                     keyExtractor={(item) => `draggable-item-${item.id}`}
-                    onDragEnd={({data: updatedData}) => setCheckboxes(updatedData)}
+                    onDragEnd={({ data: updatedData }) => setCheckboxes(updatedData)}
                 />
-                <Text style={styles.noteFooterText}>
+                <CustomText size={10}
+                    lineHeight={16} color={colors.onSurfaceLowest}>
                     {isRTL ? formattedJalaliDate : formattedDate}
-                </Text>
+
+                </CustomText>
+
             </View>
             <CustomModal type={"warning"}
-                         isVisible={isModalVisible}
-                         onClose={toggleModal}
-                         width={80}
-                         disabled={!checked}
-                         cancelButtonText={t("cancel")}
-                         actionButtonText={t("confirm")}
-                         hasCloseIcon={true}
-                         modalBody={<PrivateModal/>}
-                         modalTitle={t("checkList_status")}
-                         actionCallback={toggleLock}/>
+                isVisible={isModalVisible}
+                onClose={toggleModal}
+                width={80}
+                disabled={!checked}
+                cancelButtonText={t("cancel")}
+                actionButtonText={t("confirm")}
+                hasCloseIcon={true}
+                modalBody={<PrivateModal />}
+                modalTitle={t("checkList_status")}
+                actionCallback={toggleLock} />
             <CustomModal type={"warning"}
-                         isVisible={isDeleteCheckListModalVisible}
-                         onClose={toggleDeleteCheckListModal}
-                         width={80}
-                         cancelButtonText={t("cancel")}
-                         actionButtonText={t("confirm")}
-                         hasCloseIcon={true}
-                         modalBody={<DeleteCheckListModal/>}
-                         modalTitle={"Note status"}
-                         actionCallback={deleteCheckList}/>
+                isVisible={isDeleteCheckListModalVisible}
+                onClose={toggleDeleteCheckListModal}
+                width={80}
+                cancelButtonText={t("cancel")}
+                actionButtonText={t("confirm")}
+                hasCloseIcon={true}
+                modalBody={<DeleteCheckListModal />}
+                modalTitle={"Note status"}
+                actionCallback={deleteCheckList} />
         </>
 
     )
@@ -263,11 +294,7 @@ const useThemedStyles = (colors) => {
             justifyContent: "space-between",
         },
         noteHeaderText: {
-            fontSize: 16,
-            lineHeight: 24,
             width: "70%",
-            fontFamily: "dana-bold",
-            color: colors.onSurfaceHigh
         },
         noteHeaderIcon: {
             flexDirection: "row",
@@ -278,39 +305,12 @@ const useThemedStyles = (colors) => {
         noteText: {
             fontSize: 12,
             lineHeight: 16,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.onSurfaceContainer,
             marginVertical: 8,
             textAlign: "justify"
         },
-        noteFooterText: {
-            color: colors.onSurfaceLowest,
-            fontSize: 10,
-            fontFamily: 'dana-regular',
-            lineHeight: 16
-        },
-        popUp: {
-            borderRadius: 8,
-            backgroundColor: colors.surfaceContainerLowest,
-        },
-        popUpOption: {
-            flexDirection: "row",
-            alignItems: 'center',
-            justifyContent: "flex-start",
-            height: 57,
-            gap: 8,
-            borderBottomColor: colors.outlineSurface,
-            borderBottomWidth: 1,
-            paddingVertical: 8,
-            paddingHorizontal: 12
 
-        },
-        popUpOptionText: {
-            fontSize: 16,
-            lineHeight: 24,
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceHigh
-        },
         radio: {
             backgroundColor: "transparent",
             borderWidth: 0,
@@ -325,7 +325,7 @@ const useThemedStyles = (colors) => {
             fontSize: 14,
             lineHeight: 24,
             color: colors.onSurfaceHigh,
-            fontFamily: "dana-regular"
+            fontFamily: gStyles.fontMain.fontFamily
 
         },
         checkboxContainer: {
@@ -341,7 +341,7 @@ const useThemedStyles = (colors) => {
             fontSize: 14,
             lineHeight: 20,
             color: colors.onSurfaceLow,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             textAlign: "justify"
         },
         checkBox: {
@@ -353,13 +353,14 @@ const useThemedStyles = (colors) => {
             margin: 0,
             marginRight: 0,
             marginLeft: 0,
-            marginBottom: 0},
+            marginBottom: 0
+        },
         deleteText: {
             fontSize: 16,
             lineHeight: 24,
             width: "90%",
             color: colors.onSurfaceHigh,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             textAlign: "justify"
 
         },
@@ -372,6 +373,7 @@ const useThemedStyles = (colors) => {
         },
     });
 };
+
 
 export default CheckListItem
 

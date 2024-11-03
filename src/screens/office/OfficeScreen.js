@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, ScrollView, RefreshControl, Dimensions} from 'react-native';
+import {StyleSheet, ScrollView, RefreshControl, Dimensions} from 'react-native';
 import CheckList from "../TimeClock/CheckList";
 import {useNavigation, useTheme} from "@react-navigation/native";
 import TimeClock from "../TimeClock/TimeClock";
@@ -83,13 +83,6 @@ const useThemedStyles = () => {
             marginBottom: 10,
             marginHorizontal: 6,
             borderRadius: 100,
-        },
-        chipsText: {
-            fontFamily: "dana-bold",
-            fontSize: 12,
-            fontWeight: '500',
-            lineHeight: 16,
-            color: colors.onSurface,
         },
     });
 };

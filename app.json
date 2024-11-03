@@ -1,15 +1,15 @@
 {
   "expo": {
     "name": "app",
-    "slug": "khiyabun-develop",
+    "slug": "khdev",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/img/logo/startLogoPhotoroom.png",
+      "image": "./assets/framer.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#4A75F5"
     },
     "plugins": [
       [
@@ -19,15 +19,25 @@
           "cameraPermission": "has Access"
         }
       ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      "@react-native-firebase/crashlytics",
       [
-        "expo-build-properties",
+        "expo-notifications",
         {
-          "ios": {
-            "useFrameworks": "static"
-          }
+          "icon": "./assets/favicon.png",
+          "color": "green",
+          "defaultChannel": "default",
+          "sounds": [
+            "./assets/notification.mp3"
+          ]
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Khiyabun to use your location.",
+          "locationWhenInUsePermission": "Allow Khiyabun to access your location while using the app.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],
@@ -38,7 +48,20 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.khiyabun.khiyabun",
-      "googleServicesFile": "./ios/GoogleService-Info.plist"
+      "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs your location at all times.",
+        "NSLocationAlwaysUsageDescription": "This app needs your location in the background.",
+        "NSLocationWhenInUseUsageDescription": "This app needs your location while using it.",
+        "UIBackgroundModes": [
+          "location"
+        ],
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -51,7 +74,10 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.INTERNET"
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.INTERNET",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ]
     },
     "web": {
@@ -60,9 +86,9 @@
     "runtimeVersion": "51.0.0",
     "extra": {
       "eas": {
-        "projectId": "0fa7516f-e21c-4a93-8298-ca5b12a8ae5f"
+        "projectId": "3dae27cc-9b2f-433c-90b5-b8763ffe9dec"
       }
     },
-    "owner": "a.zare"
+    "owner": "a.zareh"
   }
 }

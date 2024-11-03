@@ -6,6 +6,7 @@ import KhiyabunIcons from "../../components/KhiyabunIcons";
 import React, {useState} from "react";
 import {CheckBox} from "@rneui/themed"
 import AddFormCard from "./AddFormCard";
+import globalStyles from "../../global-styles/GlobalStyles";
 
 function PropertyType() {
     const {t, i18n} = useTranslation();
@@ -80,7 +81,6 @@ function PropertyType() {
                             checkedColor={colors.primary}
                             textStyle={checkbox.checked ? [styles.title, {
                                 color: colors.onSurfaceLow,
-                                textDecorationLine: "line-through"
                             }] : styles.title}
                             title={checkbox.content}
 
@@ -123,9 +123,12 @@ const useThemedStyles = (colors) => {
     return StyleSheet.create({
         cardWrapper: {
             paddingHorizontal: 4,
-            width:"50%"
+            width: "50%"
         },
-
+        title: {
+            fontFamily: globalStyles.fontBold.fontFamily,
+            fontSize: 12
+        },
         radio: {
             backgroundColor: "transparent",
             borderWidth: 0,

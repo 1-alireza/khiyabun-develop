@@ -11,7 +11,8 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 import DraggableCheckbox from "./DraggableCheckbox";
 import {putRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
-
+import {useSelector} from "react-redux";
+import gStyles from "../../global-styles/GlobalStyles"
 
 const EditCheckListSheet = ({isVisible, onClose, onChangeCallback, item}) => {
     const {t, i18n} = useTranslation();
@@ -23,6 +24,7 @@ const EditCheckListSheet = ({isVisible, onClose, onChangeCallback, item}) => {
     const [isAddingDisabled, setIsAddingDisabled] = useState(true);
     const [checkList, setCheckLists] = useState(item.items);
     const [titleVal, setTitleVal] = useState(item.title);
+    const userToken = useSelector(state => state.login.token);
 
 
     useEffect(() => {
@@ -45,7 +47,7 @@ const EditCheckListSheet = ({isVisible, onClose, onChangeCallback, item}) => {
                 title: titleVal,
                 items: checkList,
             }
-            let res = await putRequest(`checklists?id=${item.objectId}`, body)
+            let res = await putRequest(`checklists?id=${item.objectId}`, body, userToken)
             console.log("checklist edited", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -108,10 +110,26 @@ const EditCheckListSheet = ({isVisible, onClose, onChangeCallback, item}) => {
                                                                           isActive={isActive}
                                                                           customStyle={styles.checkboxContainer}/>
 
+    const SheetFooter = () => {
+        return (
+            <View style={styles.sheetOptions}>
+                <Button label={t("cancel")} sizeButton={"small"} style={styles.cancelButton} width={30}
+                        styleText={styles.cancelButtonText} onPress={handleCancel}/>
+                <Button label={t("save")} sizeButton={"medium"}
+                        style={styles.selectButton}
+                        styleText={styles.selectButtonText} width={70} onPress={addChecklist}
+                        isBorder={true} borderColor={colors.primaryOutline}/>
+            </View>
+        )
+    }
+
 
     return (
-        <Sheet isOpen={isVisible} scrollable={true} contentWrapperStyle={styles.wrapper}
-               fitContent={true} onClose={onClose}
+        <Sheet isOpen={isVisible}
+               contentWrapperStyle={styles.wrapper}
+               fitContent={true}
+               footerComponent={SheetFooter}
+               onClose={onClose}
                snapPoint={500}>
             <View style={styles.sheetHeader}>
                 <Text style={styles.sheetHeaderText}>{t("Add checklist")}</Text>
@@ -146,27 +164,9 @@ const EditCheckListSheet = ({isVisible, onClose, onChangeCallback, item}) => {
                 <DraggableFlatList
                     data={checkList}
                     renderItem={renderCheckBox}
-                    dragHitSlop={
-                        {
-                            top: 0,
-                            right: 0,
-                            left: 0,
-                            bottom: 0,
-                        }
-                    }
                     keyExtractor={(item) => `draggable-item-${item.id}`}
                     onDragEnd={({data: updatedData}) => setCheckLists(updatedData)}
                 />
-
-
-                <View style={styles.sheetOptions}>
-                    <Button label={t("cancel")} sizeButton={"small"} style={styles.cancelButton} width={30}
-                            styleText={styles.cancelButtonText} onPress={handleCancel}/>
-                    <Button label={t("save")} sizeButton={"medium"}
-                            style={styles.selectButton}
-                            styleText={styles.selectButtonText} width={70} onPress={addChecklist}
-                            isBorder={true} borderColor={colors.primaryOutline}/>
-                </View>
             </View>
         </Sheet>
 
@@ -181,19 +181,16 @@ const useThemedStyles = (colors) => {
             paddingBottom: 16,
             gap: 8,
             width: "100%",
-            height: 350,
+            height: 300,
             marginBottom: 40,
-        },
-        sheetOptions: {
+        }, sheetOptions: {
             flexDirection: "row",
             justifyContent: "flex-start",
             alignItems: "center",
-            position: "absolute",
-            bottom: -65,
-            paddingVertical: 10,
             marginBottom: 20,
             width: "100%",
-            backgroundColor: colors.surfaceContainerLowest
+            backgroundColor: colors.surfaceContainerLowest,
+            paddingHorizontal: 10
         },
         wrapper: {
             padding: 0,
@@ -210,7 +207,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         cancelButton: {
@@ -223,7 +220,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         sheetHeader: {
@@ -236,13 +233,13 @@ const useThemedStyles = (colors) => {
         sheetHeaderText: {
             paddingHorizontal: 16,
             color: colors.onSurface,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontMain.fontFamily,
             lineHeight: 24
         },
         addCheckListText: {
             fontSize: 14,
             lineHeight: 20,
-            fontFamily: 'dana-regular',
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         addCheckList: {

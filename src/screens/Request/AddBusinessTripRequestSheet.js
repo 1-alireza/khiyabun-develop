@@ -1,48 +1,179 @@
-import {useTranslation} from "react-i18next";
-import {useTheme} from "@react-navigation/native";
-import {Platform, Pressable, StyleSheet, Text, View} from "react-native";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "@react-navigation/native";
+import { I18nManager, Pressable, StyleSheet, Text, View } from "react-native";
 import Sheet from "../../components/Sheet";
-import React, {useState} from "react";
-import KhiyabunIcons from "../../components/KhiyabunIcons";
+import React, { useEffect, useState } from "react";
 import Button from "../../components/Button";
 import CustomDropdown from "../../components/CustomDropdown";
 import Input from "../../components/Input";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import KhiyabunIcons from "../../components/KhiyabunIcons";
+import jalaali from "jalaali-js";
+import { getRequest, postRequest } from "../../utils/sendRequest";
+import { errorHandling } from "../../utils/errorHandling";
+import PersianDatePicker from "../../components/JalaliDate";
+import { useSelector } from "react-redux";
+import CustomText from "../../components/CustomText";
+import { log } from "expo/build/devtools/logger";
 
-const AddBusinessTripRequestSheet = ({isVisible, onClose, callBack}) => {
-    const {t, i18n} = useTranslation();
-    const {colors} = useTheme();
+const AddBusinessTripRequestSheet = ({ isVisible, onClose, callBack }) => {
+    let jToday;
+    const { t, i18n } = useTranslation();
+    const { colors } = useTheme();
     const styles = useThemedStyles(colors)
-    const [startDate, setStartDate] = useState(new Date());
-    const [finishDate, setFinishDate] = useState(new Date());
-    const [timeOffType, setTimeOffType] = useState('')
-    const [showStartDatePicker, setStartShowDatePicker] = useState(false)
-    const [showFinishDatePicker, setShowFinishDatePicker] = useState(false)
-    const supportOptions = [
-        {label: "Errand", value: "Errand"},
-        {label: "Enter Office", value: "Enter Office"},
-        {label: "Leave Office", value: "Leave Office"},
-        {label: "Talk to cofounders", value: "Talk to cofounders"},
-    ]
-    const changeTimeOffType = (type) => {
-        setTimeOffType(type)
+    const userToken = useSelector(state => state.login.token);
+    const [timeOffStartDate, setTimeOffStartDate] = useState('')
+    const [attachedNote, setAttachedNote] = useState('');
+    const [origin, setOrigin] = useState('');
+    const [destination, setDestination] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [finishDate, setFinishDate] = useState('');
+    const [tripType, setTripType] = useState('')
+    const [requestedHours, setRequestedHours] = useState('')
+    const [showStartDatePicker, setShowStartDatePicker] = useState(false)
+    const [showFinishDatePicker, setShowEndDatePicker] = useState(false)
+    const [countries, setCountries] = useState([])
+    const isRTL = I18nManager.isRTL;
+
+    useEffect(() => {
+        getCountries()
+
+    }, []);
+    const getCountries = async () => {
+        let res = await getRequest("countries", {}, userToken)
+        let newCountries = []
+        console.log(res.data);
+        res.data.forEach(country => {
+            newCountries.push({
+                "label": country.name,
+                "value": country.name
+            })
+
+        });
+        setCountries(newCountries)
     }
-    const addRequest = () => {
-        callBack("businessTrip")
+    
+    console.log("sda", countries);
+
+    const businessTripOptions = [
+        { "label": "داخلی", "value": "داخلی" },
+        { "label": "خارجی", "value": "خارجی" }
+
+    ]
+
+    const enBusinessTripOptions = [
+        { "label": "domestic", "value": "domestic" },
+        { "label": "foreign", "value": "foreign" },
+
+    ]
+    const changeTripType = (type) => {
+        setTripType(type)
+    }
+    const convertToJalali = (isoDateString) => {
+        const date = new Date(isoDateString);
+        const year = date.getUTCFullYear();
+        const month = date.getUTCMonth() + 1;
+        const day = date.getUTCDate();
+        const { jy, jm, jd } = jalaali.toJalaali(year, month, day);
+        return `${jy}/${String(jm).padStart(2, '0')}/${String(jd).padStart(2, '0')}`;
+    };
+    const today = new Date();
+
+    jToday = convertToJalali(today)
+    const convertFinishTimeToGregorian = (jalaliDate, type) => {
+        console.log(jalaliDate)
+        if (type == "start") {
+            console.log("jalaliDate")
+            setTimeOffStartDate(jalaliDate)
+            const [jy, jm, jd] = jalaliDate.split('/').map(Number);
+            const { gy, gm, gd } = jalaali.toGregorian(jy, jm, jd);
+            console.log(`${gy}/${String(gm).padStart(2, '0')}/${String(gd).padStart(2, '0')}`);
+            setShowEndDatePicker(false)
+            setShowStartDatePicker(false)
+            setStartDate(`${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`)
+        } else {
+            const [jy, jm, jd] = jalaliDate.split('/').map(Number);
+            const { gy, gm, gd } = jalaali.toGregorian(jy, jm, jd);
+            console.log(`${gy}/${String(gm).padStart(2, '0')}/${String(gd).padStart(2, '0')}`);
+            setShowStartDatePicker(false)
+            setShowEndDatePicker(false)
+
+            setFinishDate(finishDate => `${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`)
+            getWorkHours(`${gy}-${String(gm).padStart(2, '0')}-${String(gd).padStart(2, '0')}`)
+        }
+
+    };
+
+    const getWorkHours = async (finishDate) => {
+        const body = {
+            startDate: startDate,
+            endDate: finishDate
+        }
+
+        let res = await getRequest(`work_request/working_hours`, body, userToken)
+        console.log("ads", res)
+        setRequestedHours(res.data.hours)
+
     }
 
-    const onChangeStartDate = (event, selectedDate) => {
-        const currentDate = selectedDate || startDate;
-        setStartDate(currentDate);
-        setStartShowDatePicker(false)
-        console.log(startDate)
-    };
-    const onChangeFinishDate = (event, selectedDate) => {
-        const currentFinishDate = selectedDate || finishDate;
-        setFinishDate(currentFinishDate);
-        setShowFinishDatePicker(false)
-        console.log(currentFinishDate)
-    };
+
+    const getAttachedNote = (note) => {
+        setAttachedNote(note)
+    }
+
+    const getDestination = (note) => {
+        setDestination(note)
+    }
+
+    const getOrigin = (note) => {
+        setOrigin(note)
+    }
+
+    const addRequest = async () => {
+        try {
+            const body = {
+                workRequestType: "business_trip",
+                startTime: `${startDate + "T" + "00:00:00"}`,
+                endTime: `${finishDate + "T" + "24:00:00"}`,
+                origin: origin,
+                destination: destination,
+                subType: tripType,
+                note: attachedNote,
+                isDaily: null,
+            }
+
+
+            let res = await postRequest("work_request", body, userToken)
+            console.log("time off added", res)
+            if (res.statusCode === 200) {
+                errorHandling(res, "confirm")
+                callBack()
+            } else {
+                console.log("warning")
+                errorHandling(res, "warning")
+            }
+        } catch (e) {
+            errorHandling(res, "error")
+        }
+    }
+
+    const selectForeignCity = async (country) => {
+        let body = {
+            country: country
+        }
+        console.log(body);
+        let res = await getRequest("countries/cities", body, userToken)
+        let countryCities = []
+        console.log(res);
+        return
+        res.data.forEach(country => {
+            newCountries.push({
+                "label": country.name,
+                "value": country.name
+            })
+
+        });
+        // console.log(newCountries);
+    }
 
 
     return (
@@ -51,53 +182,59 @@ const AddBusinessTripRequestSheet = ({isVisible, onClose, callBack}) => {
                 <Text style={styles.sheetHeaderText}>{t("business_trip_request")}</Text>
             </View>
             <View style={styles.sheetBody}>
-                <CustomDropdown data={supportOptions} defaultValue={"Errand"}
-                                placeHolder={"type"} callBackFunction={changeTimeOffType} style={styles.dropDown}/>
+                <CustomDropdown data={isRTL ? businessTripOptions : enBusinessTripOptions} defaultValue={"Errand"}
+                    placeHolder={"type"} callBackFunction={changeTripType} style={styles.dropDown} />
                 <View style={styles.inputWrapper}>
-                    <Input placeholder={t("origin")} customStyles={{width: "49%"}}/>
-                    <Input placeholder={t("destination")} customStyles={{width: "49%"}}/>
+                    <CustomDropdown data={countries} defaultValue={"iran"}
+                        placeHolder={t("origin")} callBackFunction={selectForeignCity} style={[styles.dropDown, { width: "49%" }]} />
+                    {/* <Input placeholder={t("origin")} onChangeText={getOrigin} customStyles={{ width: "49%" }} /> */}
+                    {/* <Input placeholder={t("destination")} onChangeText={getDestination} customStyles={{ width: "49%" }} /> */}
                 </View>
-                <Input placeholder={"September 29th 2023 - 05:13 pm"} value={"September 29th 2023 - 05:13 pm"}
-                       rightIcon={"calender-outline"}
-                       onFocus={() => setStartShowDatePicker(true)}/>
-                <Input placeholder={"September 29th 2023 - 05:13 pm"} value={"September 29th 2023 - 05:13 pm"}
-                       rightIcon={"calender-outline"}
-                       onFocus={() => setShowFinishDatePicker(true)}
-                       supportText={t("total_hours") + ": 7:14"}/>
+                <Pressable style={styles.dateTrigger} onPress={() => setShowStartDatePicker(true)}>
+                    <CustomText size={14} lineHeight={20} color={colors.onSurface}>
+                        {startDate ? convertToJalali(startDate) : t("start_date")}
+                    </CustomText>
+                    <KhiyabunIcons name={"calender-outline"} size={24} />
+                </Pressable>
+                <Pressable style={styles.dateTrigger} onPress={() => setShowEndDatePicker(true)}>
+                    <CustomText size={14} lineHeight={20} color={colors.onSurface}>
+                        {finishDate ? convertToJalali(finishDate) : t("finish_date")}
+                    </CustomText>
+                    <KhiyabunIcons name={"calender-outline"} size={24} />
+                </Pressable>
+                {requestedHours && (
+                    <CustomText size={12} lineHeight={16} color={colors.onSurfaceLow}
+                        customStyle={{ marginBottom: 10, paddingHorizontal: 5 }}>
+                        {t("total_time_requested") + " : " + requestedHours + t("hour")}
+                    </CustomText>
 
-                <Input label={t("note")} placeholder={t("please_explain_your_request")} multiline={true}
-                       linesNumber={10} customStyles={{height: 130}}/>
+                )}
+
+                <Input label={t("note")} onChangeText={getAttachedNote} placeholder={t("please_explain_your_request")}
+                    multiline={true}
+                    linesNumber={10} customStyles={{ height: 130 }} />
             </View>
             {showStartDatePicker && (
-                <DateTimePicker
-                    testID="dateTimePicker"
-                    value={startDate}
-                    mode={"date"}
-                    is24Hour={true}
-                    display="default"
-                    onChange={onChangeStartDate}
+                <PersianDatePicker
+                    onDateChange={(jalaliDate) => convertFinishTimeToGregorian(jalaliDate, "start")}
+                    selectedDate={jToday}
                 />
             )}
             {showFinishDatePicker && (
-                <DateTimePicker
-                    testID="dateTimePicker"
-                    value={finishDate}
-                    mode={"date"}
-                    is24Hour={true}
-                    display="default"
-                    onChange={onChangeFinishDate}
+                <PersianDatePicker
+                    startDate={timeOffStartDate}
+                    onDateChange={(jalaliDate) => convertFinishTimeToGregorian(jalaliDate, "finish")}
+                    selectedDate={jToday}
                 />
             )}
             <View style={styles.sheetOptions}>
                 <Button label={t("cancel")} sizeButton={"small"} style={styles.cancelButton} width={40}
-                        styleText={styles.cancelButtonText} onPress={onClose}/>
+                    styleText={styles.cancelButtonText} onPress={onClose} />
                 <Button label={t("send_for_approval")} sizeButton={"medium"} style={styles.selectButton}
-                        styleText={styles.selectButtonText} width={60} onPress={addRequest}
-                        isBorder={true} borderColor={colors.primaryOutline}/>
+                    styleText={styles.selectButtonText} width={60} onPress={addRequest}
+                    isBorder={true} borderColor={colors.primaryOutline} />
             </View>
         </Sheet>
-
-
     )
 
 }
@@ -131,7 +268,7 @@ const useThemedStyles = (colors) => {
             position: "absolute",
 
             bottom: 0,
-            marginBottom: 20,
+            marginBottom: 10,
             width: "100%",
         },
         selectButton: {
@@ -201,7 +338,19 @@ const useThemedStyles = (colors) => {
         dropDown: {
             paddingVertical: 0,
             paddingBottom: 8,
-        }
+        },
+        dateTrigger: {
+            direction: "ltr",
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderRadius: 8,
+            padding: 10,
+            height: 48,
+            width: "100%",
+            justifyContent: "space-between",
+            borderColor: colors.outlineSurface
+        },
 
 
     });

@@ -1,29 +1,94 @@
-import {useTheme} from "@react-navigation/native";
-import {Pressable, StyleSheet, Text, View} from "react-native";
-import RequestDetailSheet from "./RequestDetailSheet";
-import {useState} from "react";
-import {useTranslation} from "react-i18next";
+import { useTheme } from "@react-navigation/native";
+import { I18nManager, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import jalaali, { toJalaali } from "jalaali-js";
+import { getRequest } from "../../utils/sendRequest";
+import { useSelector } from "react-redux";
+import CustomText from "../../components/CustomText";
 
-function Request({item, onPress}) {
-    const {t, i18n} = useTranslation();
-    const {colors} = useTheme();
+function Request({ item, onPress }) {
+    const { t, i18n } = useTranslation();
+    const { colors } = useTheme();
     const styles = useThemedStyles(colors)
+    const isRTL = I18nManager.isRTL;
+    const userToken = useSelector(state => state.login.token);
+
+
+    function formatDateString(dateString) {
+        const date = new Date(dateString);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+        const timeString = date.toLocaleTimeString([], options).replace(':00', '').replace('AM', 'am').replace('PM', 'pm');
+        return `${month}/${day} from ${timeString}`;
+    }
+
+
+    const formatJalaliDateString = (dateString) => {
+        const date = new Date(dateString);
+
+        // Check for invalid date
+        if (isNaN(date.getTime())) {
+            return 'Invalid date';
+        }
+
+        // Convert to Jalali Date
+        const jalaliDate = toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate());
+
+        // Get hours and minutes
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const formattedTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${hours < 12 ? 'ق.ظ' : 'ب.ظ'}`;
+        return `${jalaliDate.jm}/${jalaliDate.jd} ${formattedTime}`;
+    };
+
+    const startDate = formatDateString(item.startTime)
+    const finishDate = formatDateString(item.endTime)
+    const startJalaliDate = formatJalaliDateString(item.startTime)
+    const finishJalaliDate = formatJalaliDateString(item.endTime)
+
+
+    const getRequestData = async (finishDate) => {
+        const body = {
+            startDate: startDate,
+            endDate: finishDate
+        }
+        console.log(body)
+        let res = await getRequest(`work_request/by_id?id=${item.id}`, body, userToken)
+        console.log(typeof res.data.hours)
+        setRequestedHours(res.data.hours)
+        console.log("request", res)
+
+    }
+
+
+    const requestTime = () => {
+        if (isRTL) return startJalaliDate + " تا " + finishJalaliDate
+        if (!isRTL) return startDate + " to " + finishDate
+    }
+    const isFullDay = !item.isDaily ? `${t("full_day")}` : ""
 
 
     return (
-        <Pressable style={styles.request} onPress={()=>onPress(item)}>
+        <Pressable style={styles.request} onPress={() => onPress(item)}>
             <View style={styles.requestData}>
-                <Text style={styles.requestTitle}>
-                    {t(item.type) + " > " + t(item.content)}
-                </Text>
-                <Text style={styles.requestTime}>
-                    {item.date + " " + item.time}
-                </Text>
+                <CustomText color={colors.onSurfaceHigh} size={16} lineHeight={24}>
+                    {t(item.workRequestType) + " > " + t(item.subType)}
+                </CustomText>
+                <CustomText color={colors.onSurfaceLow} size={12} lineHeight={16} customStyle={styles.requestTime}>
+                    {requestTime() + " " + isFullDay}
+                </CustomText>
+
             </View>
-            <Text
-                style={item.status === "pending" ? styles.pendingStatus : item.status === "approved" ? styles.ApprovedStatus : styles.DeclinedStatus}>
-                {t(item.status)}
-            </Text>
+            <CustomText>
+
+            </CustomText>
+            <CustomText
+                size={12}
+                lineHeight={16}
+                customStyle={item.workRequestStatus === "PENDING" ? styles.pendingStatus : item.workRequestStatus === "APPROVED" ? styles.ApprovedStatus : styles.DeclinedStatus}>
+                {t(item.workRequestStatus)}
+            </CustomText>
         </Pressable>
     )
 }
@@ -40,8 +105,6 @@ const useThemedStyles = (colors) => {
         },
         pendingStatus: {
             color: colors.darkWarning,
-            fontSize: 12,
-            lineHeight: 16,
             fontWeight: "500",
             backgroundColor: colors.warningContainer,
             paddingVertical: 6,
@@ -53,8 +116,6 @@ const useThemedStyles = (colors) => {
         },
         DeclinedStatus: {
             color: colors.darkError,
-            fontSize: 12,
-            lineHeight: 16,
             fontWeight: "500",
             backgroundColor: colors.confirmContainer,
             paddingVertical: 6,
@@ -66,8 +127,6 @@ const useThemedStyles = (colors) => {
         },
         ApprovedStatus: {
             color: colors.darkWarning,
-            fontSize: 12,
-            lineHeight: 16,
             fontWeight: "500",
             backgroundColor: colors.errorContainer,
             paddingVertical: 6,
@@ -78,20 +137,12 @@ const useThemedStyles = (colors) => {
             textAlignVertical: "center"
         },
 
-        requestTitle: {
-            color: colors.onSurfaceHigh,
-            fontSize: 16,
-            lineHeight: 24
-        },
         requestTime: {
-            color: colors.onSurfaceLow,
-            fontSize: 12,
-            lineHeight: 16,
             maxWidth: 200
         },
         requestData: {
             paddingHorizontal: 8,
-            gap:4
+            gap: 4
         }
     });
 };

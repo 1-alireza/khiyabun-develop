@@ -14,7 +14,7 @@ const unSupportedURL = 'slack://open?team=123456';
 
 
 function SocialMediaIcons(){
-    const profileData = useSelector((state) => state.profile.profileData.data);
+    const profileData = useSelector((state) => state.profile.profileData);
     const { colors } = useTheme();
     const styles = useThemedStyles(colors);
 
@@ -22,19 +22,19 @@ function SocialMediaIcons(){
 
 
     return  <View style={styles.socialMediaIconsWrapper}>
-        <ExternalLink url={profileData.socialMedias?.Instagram||"unSupportedURL"}>
+        <ExternalLink url={profileData?.socialMedias?.Instagram||"unSupportedURL"}>
             <Image source={socialMediaIconsLogo.Instagram}  style={styles.socialMediaIcons}  />
         </ExternalLink>
-        <ExternalLink url={profileData.socialMedias?.website||"unSupportedURL"} >
+        <ExternalLink url={profileData?.socialMedias?.website||"unSupportedURL"} >
             <Image source={socialMediaIconsLogo.facebook}  style={styles.socialMediaIcons} />
         </ExternalLink>
-        <ExternalLink url={profileData.socialMedias?.LinkedIn||"unSupportedURL"} >
+        <ExternalLink url={profileData?.socialMedias?.LinkedIn||"unSupportedURL"} >
             <Image source={socialMediaIconsLogo.linkedin}  style={styles.socialMediaIcons} />
         </ExternalLink>
-        <ExternalLink url={profileData.socialMedias?.X||"unSupportedURL"} >
+        <ExternalLink url={profileData?.socialMedias?.X||"unSupportedURL"} >
             <Image source={socialMediaIconsLogo.X}  style={styles.socialMediaIcons} />
         </ExternalLink>
-        <ExternalLink url={profileData.socialMedias?.YouTube||"unSupportedURL"} >
+        <ExternalLink url={profileData?.socialMedias?.YouTube||"unSupportedURL"} >
             <Image source={socialMediaIconsLogo.Youtube}  style={styles.socialMediaIcons} />
         </ExternalLink>
      </View>

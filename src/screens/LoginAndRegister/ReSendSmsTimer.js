@@ -66,7 +66,7 @@ const ReSendSmsTimer = ({initialTime,phoneNumber,typeSend}) => {
                 default:
                     api = 'users/login_send_code';
             }
-            let response = await postRequest(api, body,false);
+            let response = await postRequest(api, body,"");
             console.log("resend sms response:", response);
             if (response.statusCode === 200) {
                 errorHandling(response,"confirm");

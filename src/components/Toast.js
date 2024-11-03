@@ -8,6 +8,7 @@ import gStyles from "./../global-styles/GlobalStyles";
 import CustomToast from "./CustomToast";
 import {LinearProgress} from "react-native-elements";
 import i18n from "i18next";
+import CustomText from "./CustomText";
 
 const Toast = ({type, text}) => {
     const [progress, setProgress] = useState(0);
@@ -58,9 +59,9 @@ const Toast = ({type, text}) => {
             <View style={[styles.progressBar,{backgroundColor:color}]}/>
             <View style={[gStyles.col_10, styles.content]}>
                 <KhiyabunIcons name="info-circle-bold" size={16} color={color}/>
-                <Text style={styles.messages}>
+                <CustomText customStyle={styles.messages}>
                     {text}
-                </Text>
+                </CustomText>
             </View>
             <Button onPress={onCloseHandler}
                     label={<KhiyabunIcons name="close-outline" size={16} color={colors.onSurfaceLow}/>}
@@ -107,7 +108,7 @@ const useThemedStyles = (colors) => {
             gap: 5
         },
         messages: {
-            fontFamily: i18n.dir() === "rtl"? "dana-regular": "poppins-regular",
+            ...gStyles.fontMain,
             width: "100%",
             fontSize: 13,
             textAlign: "justify",

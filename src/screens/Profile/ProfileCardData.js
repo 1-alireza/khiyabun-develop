@@ -2,6 +2,7 @@ import {I18nManager, StyleSheet, Text, View} from "react-native";
 import {useTheme} from "@react-navigation/native";
 import {useTranslation} from "react-i18next";
 import gStyles from "../../global-styles/GlobalStyles";
+import CustomText from "../../components/CustomText";
 
 function ProfileCardData({title, data}) {
     const {t, i18n} = useTranslation();
@@ -12,8 +13,8 @@ function ProfileCardData({title, data}) {
 
     return (
         <View style={styles.dataWrapper}>
-            <Text style={styles.listTitle}>{t(title)}:</Text>
-            <Text style={styles.listData}>{t(data)}</Text>
+            <CustomText size={14} lineHeight={24} color={colors.onSurfaceLow}>{t(title)}:</CustomText>
+            <CustomText size={14} lineHeight={24} color={colors.onSurface} >{t(data)}</CustomText>
         </View>
     )
 
@@ -28,20 +29,6 @@ const useThemedStyles = (colors, isRTL) => {
             gap: 6,
             marginVertical: 4
         },
-        listTitle: {
-            color: colors.onSurfaceLow,
-            fontSize: 14,
-            lineHeight: 20,
-            fontFamily: isRTL ? gStyles.danaPersianNumber.fontFamily : gStyles.fontMain.fontFamily
-        },
-        listData: {
-            color: colors.onSurface,
-            fontSize: 14,
-            lineHeight: 20,
-            fontFamily: isRTL ? gStyles.danaPersianNumber.fontFamily : gStyles.fontMain.fontFamily,
-            fontWeight: "400",
-
-        }
 
     });
 };

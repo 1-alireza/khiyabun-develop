@@ -1,30 +1,27 @@
-import {useTheme} from "@react-navigation/native";
-import {FlatList, RefreshControl, Platform, StyleSheet, View, Text, Dimensions} from "react-native";
+import { useTheme } from "@react-navigation/native";
+import { FlatList, RefreshControl, Platform, StyleSheet, View } from "react-native";
 import Input from "../../components/Input";
 import Card from "../../components/Card";
 import TextNote from "./TextNote";
-import React, {useState, useRef, useEffect} from "react";
-import KhiyabunIcons from "../../components/KhiyabunIcons";
+import React, { useState, useRef, useEffect } from "react";
 import AddNoteSheet from "./AddNoteSheet";
 import EditNoteSheet from "./EditNoteSheet";
-import {
-    Menu,
-    MenuOptions,
-    MenuOption,
-    MenuTrigger,
-} from 'react-native-popup-menu';
-import {useTranslation} from "react-i18next";
-import {getRequest, putRequest} from "../../utils/sendRequest";
-import {errorHandling} from "../../utils/errorHandling";
+import { useTranslation } from "react-i18next";
+import { getRequest, putRequest } from "../../utils/sendRequest";
+import { errorHandling } from "../../utils/errorHandling";
 import EmptyData from "../../components/EmptyData";
+import { useSelector } from "react-redux";
+import gStyles from "../../global-styles/GlobalStyles";
+import CustomMenu from "../../components/customMenu";
 
-function NoteScreen() {
-    const {colors} = useTheme();
+
+function NoteScreen({ route }) {
+    const { colors } = useTheme();
     const styles = useThemedStyles(colors)
     const [isVisible, setIsVisible] = useState(false)
     const [status, setStatus] = useState(true)
     const [header, setHeader] = useState('')
-    const {t, i18n} = useTranslation();
+    const { t, i18n } = useTranslation();
     const [content, setContent] = useState('')
     const [searchedNote, setSearchedNote] = useState('')
     const [debouncedValue, setDebouncedValue] = useState(searchedNote);
@@ -35,12 +32,24 @@ function NoteScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const flatListRef = useRef(null);
     const [data, setData] = useState([])
+    const [searchedData, setSearchedData] = useState([])
+    const userToken = useSelector(state => state.login.token);
+    const noteSortBy = useSelector(state => state.noteSortBy.sortBy);
+    const [page, setPage] = useState(0);
+    const [searchedPage, setSearchedPage] = useState(0);
+    const [loading, setLoading] = useState(false);
+    console.log("ss", noteSortBy)
 
+
+    // useEffect(() => {
+    //     setData([]);
+    //     setPage(page=>0);
+    //     setTimeout(()=>getNotes(),2000)
+    // }, [noteSortBy]);
 
     useEffect(() => {
         debouncedValue ? getSearchedNotes() : getNotes()
     }, [debouncedValue]);
-
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -53,8 +62,8 @@ function NoteScreen() {
         };
     }, [searchedNote]);
 
-
     const searchNote = (searchedVal) => {
+        setPage(0)
         setSearchedNote(searchedNote => searchedVal)
     }
 
@@ -67,7 +76,6 @@ function NoteScreen() {
     const closeNoteSheet = () => {
         setIsVisible(false);
     };
-
 
     const openEditSheet = (item) => {
         setEditType(item.type)
@@ -85,24 +93,66 @@ function NoteScreen() {
 
 
     const getNotes = async () => {
-        let res = await getRequest("notes")
+        if (loading) return; // Prevent multiple calls
+        setLoading(true);
+        let body = {
+            page: 0,
+            size: 10,
+            sortBy: noteSortBy,
+            sortOrder: "desc"
+        };
+        console.log("bb", body)
+
+        let res = await getRequest("notes", body, userToken)
         console.log("notes", res)
-        setData(data => res.data)
-        if (data.length > 0) {
-            scrollToLastItem()
+        if (res.data.length > 0) {
+            setData(prevData => [...prevData, ...res.data]); // Append new data
+            setPage(prevPage => prevPage + 1); //
+            // scrollToLastItem()
+        }
+        if (data.length < 10) {
+            setLoading(false);
+
         }
         closeNoteSheet()
     }
 
+    const getNotesAfterDelete = async () => {
+        let body = {
+            page: 0,
+            size: 10,
+        }
+        let res = await getRequest("notes", body, userToken)
+        console.log("notes", res)
+        if (res.data.length > 0) {
+            setData(prevData => res.data);
+        }
+        closeNoteSheet()
+    }
+
+    const handleLoadMore = () => {
+        console.log("more")
+        console.log(page)
+        if (!loading) { // Check to avoid multiple requests
+            console.log(page,)
+            debouncedValue ? getSearchedNotes() : getNotes()
+        }
+    };
 
     const getSearchedNotes = async () => {
-        const body = {searchWord: debouncedValue}
-        let res = await getRequest("notes", body)
+        const body = {
+            page: searchedPage,
+            size: 10,
+            searchWord: debouncedValue
+        }
+        let res = await getRequest("notes", body, userToken)
         console.log("searched notes", res)
-        setData(data => res.data)
+        setSearchedData(data => res.data)
         if (res.data.length <= 0) {
+            setSearchedData(prevData => [...prevData, ...res.data]); // Append new data
+            setPage(prevPage => prevPage + 1); //
             setNotFoundError(true)
-            console.log("not",notFoundError)
+            console.log("not", notFoundError)
         }
         closeNoteSheet()
     }
@@ -113,7 +163,7 @@ function NoteScreen() {
                 title: headerValue,
                 text: contentValue,
             }
-            let res = await putRequest(`notes?id=${id}`, body)
+            let res = await putRequest(`notes?id=${id}`, body, userToken)
             console.log("activeTeam", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -123,7 +173,7 @@ function NoteScreen() {
         } catch (e) {
             errorHandling(res, "error")
         }
-        getNotes()
+        getNotesAfterDelete()
         closeEditSheet()
 
     }
@@ -135,7 +185,8 @@ function NoteScreen() {
         });
     };
 
-    const renderItem = ({item}) => <TextNote item={item} onDeleteCallBack={getNotes} openEditSheet={openEditSheet}/>;
+    const renderItem = ({ item }) => <TextNote item={item} onDeleteCallBack={getNotesAfterDelete}
+        openEditSheet={openEditSheet} />;
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -145,68 +196,85 @@ function NoteScreen() {
         }, 2000);
     };
 
+    const menuItems = [
+        {
+            text: "Private",
+            onSelect: () => openNoteSheet(true),
+            icon: "lock-outline"
+        },
+        {
+            text: "Public",
+            onSelect: () => openNoteSheet(false),
+            icon: "unlock-outline"
+        },
+    ];
+    const triggerIcon = {
+        name: "add-outline",
+        size: 20
+    }
+
+
     return (
         <>
             <Input placeholder={t("Search")} onChangeText={searchNote} rightIcon={"search-normal-outline"}
-                   customStyles={styles.input}/>
-            {data.length > 0 ?
-                <View style={styles.mainView}>
-                    <Card customStyle={styles.wrapperStyle}
-                    >
-                        <FlatList
-                            data={data}
-                            renderItem={renderItem}
-                            style={styles.flatList}
-                            ref={flatListRef}
-                            keyExtractor={(item) => item.id}
-                            ItemSeparatorComponent={() => <View style={styles.separator}/>}
-                            refreshControl={<RefreshControl
-                                refreshing={refreshing}
-                                onRefresh={onRefresh}
-                                colors={[colors.primary]}
-                                progressBackgroundColor={colors.surfaceContainerLowest}/>}
-                        />
-                    </Card>
-                </View> :
-                <EmptyData notFoundError={notFoundError} />
+                customStyles={styles.input} />
+            {
+                debouncedValue ? (
+                    searchedData.length > 0 ?
+                        (<View style={styles.mainView}>
+                            <Card customStyle={styles.wrapperStyle}
+                            >
+                                <FlatList
+                                    data={searchedData}
+                                    renderItem={renderItem}
+                                    style={styles.flatList}
+                                    ref={flatListRef}
+                                    keyExtractor={(item) => item.id}
+                                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                                    refreshControl={<RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={onRefresh}
+                                        colors={[colors.primary]}
+                                        progressBackgroundColor={colors.surfaceContainerLowest} />}
+                                    onEndReached={handleLoadMore}
+                                    onEndReachedThreshold={0.1}
+                                />
+                            </Card>
+                        </View>) :
+                        <EmptyData notFoundError={notFoundError} />
+                ) :
+                    data.length > 0 ?
+                        (<View style={styles.mainView}>
+                            <Card customStyle={styles.wrapperStyle}
+                            >
+                                <FlatList
+                                    data={data}
+                                    renderItem={renderItem}
+                                    style={styles.flatList}
+                                    ref={flatListRef}
+                                    keyExtractor={(item) => item.id}
+                                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                                    refreshControl={<RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={onRefresh}
+                                        colors={[colors.primary]}
+                                        progressBackgroundColor={colors.surfaceContainerLowest} />}
+                                    onEndReached={handleLoadMore}
+                                    onEndReachedThreshold={0.1}
+                                />
+                            </Card>
+                        </View>) :
+                        <EmptyData notFoundError={notFoundError} />
 
             }
 
             <View style={styles.addNote}>
-                <Menu>
-                    <MenuTrigger>
-                        <KhiyabunIcons name={"add-outline"}
-                                       size={24}
-                                       color={colors.primary}/>
-                    </MenuTrigger>
-                    <MenuOptions optionsContainerStyle={styles.popUp}>
-                        <MenuOption style={styles.popUpOption}
-                                    onSelect={() => openNoteSheet(true)}
-                        >
-                            <KhiyabunIcons name={"lock-outline"}
-                                           size={20}
-                                           color={colors.onSurfaceHigh}
-                            />
-                            <Text style={styles.popUpOptionText}>{
-                                t("Private")}
-                            </Text>
-                        </MenuOption>
-                        <MenuOption style={styles.popUpOption}
-                                    onSelect={() => openNoteSheet(false)}>
-                            <KhiyabunIcons name={"unlock-outline"}
-                                           size={20}
-                                           color={colors.onSurfaceHigh}/>
-                            <Text style={styles.popUpOptionText}>
-                                {t("Public")}
-                            </Text>
-                        </MenuOption>
-                    </MenuOptions>
-                </Menu>
+                <CustomMenu items={menuItems} width={200} triggerIcon={triggerIcon} />
             </View>
             <AddNoteSheet onClose={closeNoteSheet}
-                          onChangeCallback={getNotes}
-                          isVisible={isVisible}
-                          status={status}/>
+                onChangeCallback={getNotes}
+                isVisible={isVisible}
+                status={status} />
             <EditNoteSheet
                 onClose={closeEditSheet}
                 onChangeCallback={editNote}
@@ -214,19 +282,20 @@ function NoteScreen() {
                 id={Id}
                 contentValue={content}
                 type={editType}
-                isVisible={isEditSheetVisible}/>
+                isVisible={isEditSheetVisible} />
+
         </>
     )
 
 }
-
 
 const useThemedStyles = (colors) => {
 
     return StyleSheet.create({
         mainView: {
             paddingHorizontal: 16,
-            marginBottom: 16,
+            // marginBottom: 16,
+            marginBottom: 75,
 
         }, input: {
             marginTop: 20,
@@ -256,7 +325,7 @@ const useThemedStyles = (colors) => {
             fontSize: 16,
             lineHeight: 24,
 
-            fontFamily: 'dana-regular',
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.onSurfaceHigh
         },
         separator: {
@@ -290,7 +359,9 @@ const useThemedStyles = (colors) => {
             }),
         },
         wrapperStyle: {
-            marginBottom: 70
+
+            height: "100vh",
+            paddingBottom: 75,
         },
         emptyData: {
             flex: 1,

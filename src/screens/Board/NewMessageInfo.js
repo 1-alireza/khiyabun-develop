@@ -7,6 +7,7 @@ import Card from "../../components/Card";
 import React from "react";
 import {I18nManager} from 'react-native';
 import gStyles from "../../global-styles/GlobalStyles";
+import CustomText from "../../components/CustomText";
 
 function NewMessageInfo({onPress}) {
     const {t} = useTranslation();
@@ -19,40 +20,37 @@ function NewMessageInfo({onPress}) {
         <Pressable onPress={onPress}>
             <Card>
                 <View style={styles.newMessage}>
-                    <Text style={styles.newMessageText}>
+                    <CustomText size={16} lineHeight={24} color={colors.primary} weight={"bold"}>
                         {t("new_messages")}
-                    </Text>
+                    </CustomText>
                     <TouchableOpacity style={styles.seeMoreTextWrapper} onPress={onPress}>
-                        <Text style={styles.seeMoreText} allowFontScaling={false}>
+                        <CustomText size={14} lineHeight={20} color={colors.darkPrimary} >
                             {t("see_all")}
-                        </Text>
+                        </CustomText>
                         {isRTL ? <KhiyabunIcons name={"arrow-left-outline"} size={18} style={styles.seeAllArrow}/> :
                             <KhiyabunIcons name={"arrow-right-outline"} size={18} style={styles.seeAllArrow}/>}
                     </TouchableOpacity>
                 </View>
                 <View style={styles.newMessageInfo}>
                     <View style={styles.contactProfile}>
-                        <Text style={styles.contactShortName}>
-                            M
-                        </Text>
+                        <CustomText size={18} customStyle={styles.contactShortName} color={colors.surfaceContainerLowest} weight={"bold"}>M</CustomText>
                     </View>
                     <View style={styles.contactProfileData}>
-                        <Text style={styles.contactName}>
+                        <CustomText size={16} color={colors.onSurface} weight={"bold"}>
                             {isRTL?"پارسا":"Martinez"}
-                        </Text>
+                        </CustomText>
                         <View style={styles.newMessageData}>
                             <Badge text="+9" width={18} height={14} fontSize={10}/>
-                            <Text style={styles.lastMessage}>
+                            <CustomText size={14} customStyle={styles.lastMessage} lineHeight={20} color={colors.onSurface} >
                                 Do you want book a demo?
-                            </Text>
+                            </CustomText>
                         </View>
 
                     </View>
                     <View style={styles.lastSeen}>
-                        <Text style={styles.lastSeenText}>
-
+                        <CustomText size={10} lineHeight={16} weight={"bold"} color={colors.onSurfaceLow}>
                             20:01
-                        </Text>
+                        </CustomText>
                     </View>
                 </View>
             </Card>
@@ -121,15 +119,7 @@ const useThemedStyles = (colors) => {
             justifyContent: "center",
             alignItems: "center",
         },
-        contactName: {
-            fontSize: 16,
-            fontFamily:gStyles.fontBold.fontFamily,
-            color: colors.onSurface,
-        },
         contactShortName: {
-            fontFamily: gStyles.fontBold.fontFamily,
-            fontSize: 18,
-            color: colors.surfaceContainerLowest,
             marginTop: 4
         },
         lastSeen: {
@@ -144,13 +134,7 @@ const useThemedStyles = (colors) => {
             color: colors.onSurfaceLow
         },
         lastMessage: {
-            fontWeight: "500",
-            fontSize: 14,
-            lineHeight: 20,
-            fontFamily: gStyles.fontMain.fontFamily,
-            color: colors.onSurface,
             marginTop: 2
-
         },
         contactProfileData: {
             // flexDirection: "column",

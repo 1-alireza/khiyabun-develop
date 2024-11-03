@@ -6,7 +6,7 @@ export const userLogin = createAsyncThunk(
     "loginAuth",
     async (loginData ,thunkAPI) => {
         try{
-            return await postRequest(loginData.api,loginData.body,false);
+            return await postRequest(loginData.api,loginData.body,"");
         }
         catch (e){
             return thunkAPI.rejectWithValue(e.response);

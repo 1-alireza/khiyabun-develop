@@ -1,10 +1,7 @@
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import {StyleSheet, View, Text, Pressable} from "react-native";
-import Card from "../../components/Card";
-import KhiyabunIcons from "../../components/KhiyabunIcons";
+import {StyleSheet, View} from "react-native";
 import React, {useState} from "react";
-import {CheckBox} from "@rneui/themed"
 import AddFormCard from "./AddFormCard";
 import Input from "../../components/Input";
 

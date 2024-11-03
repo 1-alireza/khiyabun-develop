@@ -1,13 +1,13 @@
 import React from "react";
-import {View, Text, TouchableOpacity, StyleSheet, FlatList} from 'react-native';
+import {View, StyleSheet, FlatList} from 'react-native';
 import {useTheme} from "@react-navigation/native";
-import HomeCard from "./HomeCartUI";
+import HomeCard from "./HomeCard";
+import CustomText from "../../components/CustomText";
 
 const data = [
     {title: 'Selling a villa', price: '4000 $', status: 'Need analysis'},
     {title: 'Selling an shop', price: '2000 $', status: 'Negotiation'},
 ];
-
 
 function Deal() {
     const styles = useThemedStyles();
@@ -15,11 +15,23 @@ function Deal() {
     const DealItem = ({item}) => (
         <View style={styles.box}>
             <View style={styles.wrapper}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.price}>{item.price}</Text>
+                <CustomText size={13} weight={'bold'} color={colors.onSurface}
+                            textAlign={"left"}
+                            lineHeight={20}>
+                    {item.title}
+                </CustomText>
+                <CustomText size={11} color={colors.onSurfaceLow}
+                            textAlign={"left"}
+                            lineHeight={16} customStyle={{marginTop: 3}}>
+                    {item.price}
+                </CustomText>
             </View>
             <View style={styles.statusButton}>
-                <Text style={styles.statusText}>{item.status}</Text>
+                <CustomText size={11} color={colors.darkWarning}
+                            textAlign={"left"} weight={'bold'}
+                            lineHeight={16} customStyle={{marginTop: 3}}>
+                    {item.status}
+                </CustomText>
             </View>
         </View>
     );
@@ -58,24 +70,6 @@ const useThemedStyles = () => {
         wrapper: {
             flexDirection: "column",
         },
-        title: {
-            fontFamily: "dana-bold",
-            color: colors.onSurface,
-            fontSize: 14,
-            fontWeight: "500",
-            lineHeight: 20,
-            textAlign: "left",
-        },
-        price: {
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceLow,
-            fontSize: 12,
-            fontWeight: "400",
-            lineHeight: 16,
-            textAlign: "left",
-            marginTop: 3,
-        },
-
         statusButton: {
             backgroundColor: colors.warningContainer,
             borderRadius: 20,

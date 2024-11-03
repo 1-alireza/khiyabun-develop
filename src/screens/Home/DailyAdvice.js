@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {
     View,
     ImageBackground,
-    Text,
     StyleSheet,
     Dimensions,
     I18nManager,
@@ -11,17 +10,20 @@ import {
 import {useSelector} from "react-redux"
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import gStyles from "../../global-styles/GlobalStyles";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import {getRequest, putRequest} from "../../utils/sendRequest";
 import CustomSkeleton from "../../components/CustomSkeleton";
+import CustomText from "../../components/CustomText";
+import CustomToast from "../../components/CustomToast";
 
 function DailyAdvice() {
     const {t} = useTranslation();
     const styles = useThemedStyles();
     const {colors} = useTheme();
-    const lang = useSelector(state => state.language.language);
+    const userToken = useSelector(state => state.login.token);
 
+    const [typeName, setTypeName] = useState(null);
+    const [imageUrl, setImageUrl] = useState(null);
     const [latestAdvice, setLatestAdvice] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [dailyAdviceId, setDailyAdviceId] = useState(null);
@@ -29,15 +31,13 @@ function DailyAdvice() {
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
 
-
     useEffect(() => {
         const fetchData = async () => {
             try {
                 await fetchLatestAdvice();
+                setIsLoading(false);
             } catch (error) {
                 console.error('Error fetching daily advice:', error);
-            } finally {
-                setIsLoading(false);
             }
         };
         fetchData();
@@ -51,54 +51,73 @@ function DailyAdvice() {
     }, [userReaction]);
 
     const fetchLatestAdvice = async () => {
-        const res = await getRequest("feed/daily_advices");
+        const res = await getRequest("feed/daily_advices", {}, userToken);
+        console.log("daily res", res)
         if (res.statusCode === 200) {
             setLatestAdvice(res.data.text);
             setDailyAdviceId(res.data.id);
             setUserReaction(res.data.userReaction);
+            setTypeName(res.data.typeName || null);
+            setImageUrl(res.data.imageUrl || null);
         } else {
             console.error('Error fetching advice:', res);
         }
     };
-
     const updateLikeOrDislike = async (type) => {
-        const body = { type };
-        const res = await putRequest(`feed/daily_advices?id=${dailyAdviceId}`, body);
+        if (dailyAdviceId === null) return;
+
+        const body = {type: type || null};
+        const res = await putRequest(`feed/daily_advices?id=${dailyAdviceId}`, body, userToken);
         if (res.statusCode === 200) {
             setUserReaction(type);
+            if (type === "LIKE") {
+                setLiked(true);
+                setDisliked(false);
+                CustomToast.show(t("like_advice"), "confirm");
+            } else if (type === "DISLIKE") {
+                setDisliked(true);
+                setLiked(false);
+                CustomToast.show(t("dislike_advice"), "warning");
+            } else {
+                if (liked) {
+                    setLiked(false);
+                } else if (disliked) {
+                    setDisliked(false);
+                }
+            }
         } else {
             console.error('Error updating reaction:', res);
         }
     };
 
     const handleLikePress = () => {
-        if (dailyAdviceId !== null) {
-            const newLikedState = !liked;
-            setLiked(newLikedState);
-            setDisliked(false);
-            updateLikeOrDislike(newLikedState ? "LIKE" : null);
+        if (liked) {
+            updateLikeOrDislike(null);
+        } else {
+            updateLikeOrDislike("LIKE");
         }
     };
 
     const handleDislikePress = () => {
-        if (dailyAdviceId !== null) {
-            const newDislikedState = !disliked;
-            setDisliked(newDislikedState);
-            setLiked(false);
-            updateLikeOrDislike(newDislikedState ? "DISLIKE" : null);
+        if (disliked) {
+            updateLikeOrDislike(null);
+        } else {
+            updateLikeOrDislike("DISLIKE");
         }
     };
 
-
     return (
         <View style={styles.container}>
-            <ImageBackground source={require('../../../assets/img/home-dailyAdvice-bg.png')}
-                             style={styles.imageBackground}>
-
+            <ImageBackground
+                source={imageUrl ? {uri: imageUrl} : require('../../../assets/img/home-dailyAdvice-bg.png')}
+                style={styles.imageBackground}
+            >
                 <View style={styles.chips}>
-                    <Text style={styles.chipsText}>{t("daily_advice")}</Text>
+                    <CustomText size={11} weight={'bold'} color={colors.onSurface}
+                                lineHeight={(I18nManager.isRTL) ? 16 : 18}>
+                        {typeName ? typeName : t("daily_advice")}
+                    </CustomText>
                 </View>
-
                 {isLoading ?
                     <>
                         <CustomSkeleton cStyle={[styles.skeleton, {marginBottom: 10, marginTop: 5}]}
@@ -108,9 +127,15 @@ function DailyAdvice() {
                     </>
                     :
                     latestAdvice ?
-                        <Text style={styles.adviceText}>{lang === 'fa' ? latestAdvice.fa : latestAdvice.en}</Text>
+                        <CustomText size={13} weight={'bold'} color={colors.white}
+                                    lineHeight={20} customStyle={styles.adviceText}>
+                            {latestAdvice}
+                        </CustomText>
                         :
-                        <Text style={styles.text}>{t("no_advice_available")}</Text>
+                        <CustomText size={13} weight={'bold'} color={colors.white}
+                                    lineHeight={20} customStyle={styles.adviceText}>
+                            {t("no_advice_available")}
+                        </CustomText>
                 }
 
                 <View style={styles.likeAndDislikeWrapper}>
@@ -126,7 +151,6 @@ function DailyAdvice() {
                         <KhiyabunIcons name="like-bold" size={18} color={liked ? colors.white : colors.confirm}/>
                     </Pressable>
                 </View>
-
             </ImageBackground>
         </View>
     );
@@ -134,8 +158,6 @@ function DailyAdvice() {
 
 const useThemedStyles = () => {
     const {colors} = useTheme();
-    const lang = useSelector(state => state.language.language);
-
     return StyleSheet.create({
         container: {
             marginBottom: 20,
@@ -153,41 +175,27 @@ const useThemedStyles = () => {
             justifyContent: 'center',
             backgroundColor: colors.surface,
             color: colors.onSurface,
-            width: (I18nManager.isRTL) ? 70 : 100,
+            width: (I18nManager.isRTL) ? 75 : 100,
             height: 30,
             paddingVertical: 6,
-            marginTop: 15,
-            marginBottom: 10,
+            marginTop: '4%',
+            marginBottom: '4%',
             marginHorizontal: 20,
             borderRadius: 100,
         },
-        chipsText: {
-            ...gStyles.fontBold,
-            fontSize: 12,
-            fontWeight: '500',
-            lineHeight: (I18nManager.isRTL) ? 16 : 22,
-            color: colors.onSurface,
-        },
         adviceText: {
-            fontFamily: (lang === 'fa') ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
             borderRadius: 10,
             overflow: 'hidden',
-            color: colors.white,
-            fontSize: 14,
-            fontWeight: '500',
-            lineHeight: 20,
-            textAlign: 'left',
-            marginHorizontal: 20,
+            marginHorizontal: 23,
         },
-
         skeleton: {
-            borderRadius: 10,
+            borderRadius: 5,
             textAlign: 'left',
             marginHorizontal: 20,
         },
-
         likeAndDislikeWrapper: {
             flexDirection: (I18nManager.isRTL) ? "row-reverse" : "row",
+            justifyContent: (I18nManager.isRTL) ? "flex-end" : "flex-start",
             marginVertical: 10,
             gap: 12,
             paddingHorizontal: 20,
@@ -202,17 +210,6 @@ const useThemedStyles = () => {
             height: 35,
             borderRadius: 100,
             paddingVertical: 6,
-        },
-        text: {
-            fontFamily: (lang === 'fa') ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
-            borderRadius: 10,
-            overflow: 'hidden',
-            color: colors.white,
-            fontSize: 14,
-            fontWeight: '500',
-            lineHeight: 20,
-            textAlign: 'left',
-            marginHorizontal: 20,
         },
     });
 };

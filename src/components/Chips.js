@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, useColorScheme} from 'react-native';
 import {useTheme} from "@react-navigation/native";
 import KhiyabunIcons from "./KhiyabunIcons";
+import gStyles from "../global-styles/GlobalStyles"
 
 const Chips = ({text, height, width, type, transparent, iconL, iconR, customStyle}) => {
     const theme = useColorScheme();
@@ -83,7 +84,7 @@ const useThemedStyles = (colors) => {
         },
         text: {
             textAlign: 'center',
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             fontSize: 12,
             lineHeight: 16,
         },

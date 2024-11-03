@@ -1,7 +1,7 @@
 import React, {useState} from "react";
-import {View, StyleSheet, Text, Dimensions, FlatList} from 'react-native';
+import {View, StyleSheet, FlatList} from 'react-native';
 import {useTheme} from "@react-navigation/native";
-import HomeCard from "./HomeCartUI";
+import HomeCard from "./HomeCard";
 import {CheckBox} from '@rneui/themed';
 import Button from "../../components/Button";
 import {useTranslation} from "react-i18next";
@@ -25,7 +25,7 @@ function Vote() {
             checked: index === i
         }));
         setSelectedItem(index);
-        setData(newData); // Update the data state here
+        setData(newData);
     };
 
     const SubmitVote = () => {

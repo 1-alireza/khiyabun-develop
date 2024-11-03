@@ -6,6 +6,7 @@ import React, {useState} from "react";
 import * as ImagePicker from "expo-image-picker"
 import gStyles from "../../global-styles/GlobalStyles";
 import {useSelector} from "react-redux";
+import CustomText from "../../components/CustomText";
 
 const avatar = require("../../../assets/img/3d_avatar_21.png");
 
@@ -16,8 +17,8 @@ function BoardProfile({onPress, editable}) {
     const styles = useThemedStyles(colors);
     const [image, setImage] = useState(null);
     const isRTL = I18nManager.isRTL;
-    const profileData = useSelector((state) => state.profile.profileData.data);
-
+    const profileData = useSelector((state) => state.profile.profileData);
+    console.log(profileData)
     const pickImage = async () => {
         // No permissions request is necessary for launching the image library
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -42,12 +43,12 @@ function BoardProfile({onPress, editable}) {
         <Image source={profileData.profilePicture ? {uri: `http://${profileData.profilePicture.downloadUrl}`} : avatar}
                style={styles.avatarImage}/>
         <View style={styles.profileData}>
-            <Text style={styles.userNameText}>
+            <CustomText size={16} lineHeight={24} weight={"bold"} color={colors.onSurface}>
                 {isRTL ? `  سلام!  ${profileData.firstName}` : `Hi!, ${profileData.firstName}`}
-            </Text>
-            <Text style={styles.userPhoneNumberText}>
-                {profileData.phone}
-            </Text>
+            </CustomText>
+            <CustomText size={10} color={colors.onSurfaceLow} lineHeight={16}>
+                {profileData.phone||"-"}
+            </CustomText>
         </View>
         {editable ?
             <Pressable onPress={pickImage}>
@@ -82,16 +83,9 @@ const useThemedStyles = (colors) => {
         },
         userPhoneNumberText: {
             fontSize: 10,
-            fontFamily: gStyles.danaPersianNumber.fontFamily,
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.onSurfaceLow,
             lineHeight: 16,
-        },
-        userNameText: {
-            fontSize: 16,
-            fontFamily: gStyles.fontBold.fontFamily,
-            fontWeight: "500",
-            lineHeight: 24,
-            color: colors.onSurface
         },
     });
 };

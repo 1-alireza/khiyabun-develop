@@ -18,7 +18,7 @@ export default function AddedPlaceScreen({navigation}) {
     return (
         <ScrollView contentContainerStyle={styles.mainView}>
             <AddedPlaceInfo/>
-            <AddedPlaceMap/>
+            {/*<AddedPlaceMap/>*/}
             <AddedPlaceNotes/>
             <AddedPlaceCheckList/>
             <AddedPlaceAttachments/>

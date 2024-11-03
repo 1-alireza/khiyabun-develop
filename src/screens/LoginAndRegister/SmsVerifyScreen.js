@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {View, Text, StyleSheet} from "react-native"
+import {View, Text, StyleSheet, Platform} from "react-native"
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
 import Button from "../../components/Button";
@@ -16,8 +16,10 @@ import {useDispatch, useSelector} from "react-redux";
 import {userLogin} from "../../redux/actions/loginAction";
 import {TOKEN_KEY} from "../../utils/constant";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import useWebBackButtonHandler from "../../navigation/hardwareBackHandler";
 
 export const GoToEnterMobile = ({navigation}) => {
+
     const {t} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
@@ -35,9 +37,8 @@ export const GoToEnterMobile = ({navigation}) => {
     )
 };
 const SmsVerifyScreen = ({route, navigation}) => {
-
     const dispatch = useDispatch();
-    const is_loader = useSelector(state => state.login.is_loading);
+    const is_loading = useSelector(state => state.login.is_loading);
 
 
     const {t} = useTranslation();
@@ -48,9 +49,9 @@ const SmsVerifyScreen = ({route, navigation}) => {
     const [num4, setNum4] = useState({entered_val: "", is_validate: true});
     const [smsIsValid, setSmsIsValid] = useState(true);
     const styles = useThemedStyles(!smsIsValid);
-    const [loader, setLoader] = useState(false);
+    const [loading, setLoading] = useState(false);
     const {phone_number, type_send, country_code} = route.params;
-    const title = t("sms_description") +"+"+country_code+ " - "+ phone_number;
+    const title = t("sms_description") + "+" + country_code + " - " + phone_number;
     useEffect(function () {
         inputRefs.current[0].focus();
     }, [])
@@ -83,7 +84,7 @@ const SmsVerifyScreen = ({route, navigation}) => {
 
     const verifySms = async () => {
         let smsCode = num1.entered_val + num2.entered_val + num3.entered_val + num4.entered_val;
-        setLoader(true);
+        setLoading(true);
         try {
             let api,
                 body = {
@@ -95,40 +96,47 @@ const SmsVerifyScreen = ({route, navigation}) => {
                     let data = {api, body}
                     dispatch(userLogin(data)).then(action => {
                         let response = action.payload;
-                        if(response.statusCode === 200){
+                        if (response.statusCode === 200) {
                             let token = response.data.token;
-                            AsyncStorage.setItem(TOKEN_KEY,token);
-                            navigation.navigate("Main")
+                            AsyncStorage.setItem(TOKEN_KEY, token);
+                            navigation.navigate("Main");
+                            if (Platform.OS !== 'android') window.history.pushState({}, 'Main');
+                        } else {
+                            errorHandling(response, "error");
+                            setSmsIsValid(false);
                         }
-                        setLoader(is_loader);
+                        setLoading(is_loading);
                     });
                     break;
                 default:
                     api = 'users/verify_code';
-                    const response = await postRequest(api, body,false);
+                    const response = await postRequest(api, body, "");
                     if (response.statusCode === 200) {
                         if (type_send === "register") {
-                            navigation.navigate('SetUsername', {
+                            navigation.navigate("SetUsername", {
                                 uuid: response.data.id
                             });
+                            if (Platform.OS !== 'android') window.history.pushState({}, 'SetUsername');
                         } else {
                             //reset password page
-                            navigation.navigate('ResetPassword', {
+                            navigation.navigate("ResetPassword", {
                                 uuid: response.data.id
                             });
+                            if (Platform.OS !== 'android') window.history.pushState({}, 'ResetPassword');
+
                         }
                     } else {
                         errorHandling(response, "error");
                         setSmsIsValid(false);
 
                     }
-                    setLoader(false);
+                    setLoading(false);
             }
 
         } catch (e) {
             console.log(e);
             errorHandling(t("default_error"), "error");
-            setLoader(false);
+            setLoading(false);
         }
     }
     return (
@@ -190,7 +198,7 @@ const SmsVerifyScreen = ({route, navigation}) => {
                 sizeButton="medium"
                 label={t('continue')}
                 disabled={isButtonDisabled}
-                showLoader={loader}
+                showLoading={loading}
             />
         </BaseLogin>
     );
@@ -207,21 +215,25 @@ const useThemedStyles = (has_error) => {
             // direction:"ltr"
         },
         smsNumber: {
+
             width: 62,
             height: 72,
             marginBottom: 15,
             padding: 0,
-            direction: "ltr"
+            direction: "ltr",
+            textAlign: "center"
 
         },
         input: {
+            width: "100%", //added for pwa UI problem
             fontSize: 24,
             textAlign: "center",
             color: (has_error) ? colors.error : colors.primary,
             height: "100%"
         },
         editPhoneText: {
-            fontFamily: gStyles.fontBold.fontFamily,
+            ...gStyles.fontBold,
+            fontSize: 13
         }
     });
 };

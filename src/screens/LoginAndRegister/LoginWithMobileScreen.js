@@ -1,10 +1,11 @@
 import React from "react";
-import {View, Text, StyleSheet, TextInput} from "react-native"
+import {View, StyleSheet, Platform} from "react-native"
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
 import BaseLogin from "../../components/BaseLogin";
 import Button from "../../components/Button";
 import EnteredMobileSection from "./EnterMobileSection";
+import CustomText from "../../components/CustomText";
 import gStyles from "../../global-styles/GlobalStyles";
 
 export const SignInWithUserName = ({navigation}) => {
@@ -13,9 +14,12 @@ export const SignInWithUserName = ({navigation}) => {
     const styles = useThemedStyles(colors);
     return (
         <View style={{alignItems: "center", justifyContent: "center"}}>
-            <Text style={styles.textNotAccount}>{t("or")}</Text>
+            <CustomText customStyle={styles.textNotAccount}>{t("or")}</CustomText>
             <Button
-                onPress={() => navigation.navigate('LoginWithUsername')}
+                onPress={() => {
+                    navigation.navigate("LoginWithUsername");
+                    if (Platform.OS !== 'android') window.history.pushState({}, 'LoginWithUsername');
+                }}
                 label={t('login_with_username')}
                 typeButton="full"
                 sizeButton="small"
@@ -60,7 +64,7 @@ const useThemedStyles = (colors) => {
             height: "auto"
         },
         singUpText: {
-            fontFamily: 'dana-bold',
+            ...gStyles.fontMain
         },
         phone_number:{
             width: "100%",

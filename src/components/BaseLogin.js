@@ -1,38 +1,69 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
     ScrollView,
     View,
-    Text,
     StyleSheet,
-    Image,
     ImageBackground,
-    Keyboard,
-    TouchableWithoutFeedback,
     Dimensions,
-    I18nManager
+    Platform,
 } from "react-native";
 import {useTheme} from "@react-navigation/native";
-import gStyles from "../global-styles/GlobalStyles";
+import KhiyabunIcons from "./KhiyabunIcons";
+import CustomText from "./CustomText";
 
-const BaseLogin = (props) => {
+const BaseLogin = ({title, description, bottomContent, children}) => {
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
-    const [screenHeight, setScreenHeight] = useState(Dimensions.get('window').height);
-
-    useEffect(() => {
-        const updateScreenHeight = () => {
-            setScreenHeight(Dimensions.get('window').height);
-        };
-
-        Dimensions.addEventListener('change', updateScreenHeight);
-
-        // return () => Dimensions.removeEventListener('change', updateScreenHeight);
-    }, []);
+    const isWeb = Platform.OS === 'web';
 
     return (
-        <ScrollView>
-            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-                <View style={[styles.container, {height: screenHeight}]}>
+        isWeb ? (
+            <View style={styles.container}>
+                <ImageBackground
+                    source={require('./../../assets/img/login-bg.png')}
+                    style={styles.background}
+                >
+                    <View style={[styles.card]}>
+                        <View style={styles.top}>
+                            <View style={styles.logoWrapper}>
+                                <KhiyabunIcons name="Logo" size={40} style={styles.logo}/>
+                                {/*<Image*/}
+                                {/*    style={styles.logo}*/}
+                                {/*    source={require('./../../assets/img/logo/logo.png')}*/}
+                                {/*/>*/}
+                            </View>
+                            <CustomText size={15} weight={'bold'} color={colors.onSurface}
+                                        customStyle={{marginTop: 16}}>
+                                {title}
+                            </CustomText>
+                            <CustomText lineHeight={20} size={13} color={colors.onSurface} textAlign={'center'}
+                                        customStyle={{
+                                            width: 296,
+                                            marginHorizontal: 32,
+                                            marginTop: 8,
+                                        }}>
+                                {description}
+                            </CustomText>
+                        </View>
+                        <View style={styles.middle}>
+                            {children}
+                        </View>
+                        <View style={styles.bottom}>
+                            <CustomText weight={'bold'} size={13} color={colors.onSurface} textAlign={'center'}
+                                        customStyle={{
+                                            marginHorizontal: 16,
+                                            marginVertical: 16
+                                        }}>
+                                {bottomContent}
+                            </CustomText>
+                        </View>
+                    </View>
+
+                </ImageBackground>
+            </View>
+        ) : (
+            <ScrollView>
+                <View style={styles.container}>
                     <ImageBackground
                         source={require('./../../assets/img/login-bg.png')}
                         style={styles.background}
@@ -40,28 +71,44 @@ const BaseLogin = (props) => {
                         <View style={[styles.card]}>
                             <View style={styles.top}>
                                 <View style={styles.logoWrapper}>
-                                    <Image
-                                        style={styles.logo}
-                                        source={require('./../../assets/img/logo/logo.png')}
-                                    />
+                                    <KhiyabunIcons name="Logo" size={40} style={styles.logo}/>
+                                    {/*<Image*/}
+                                    {/*    style={styles.logo}*/}
+                                    {/*    source={require('./../../assets/img/logo/logo.png')}*/}
+                                    {/*/>*/}
                                 </View>
-                                <Text style={styles.title}>{props.title}</Text>
-                                <Text style={styles.description}>{props.description}</Text>
+                                <CustomText size={15} weight={'bold'} color={colors.onSurface}
+                                            customStyle={{marginTop: 16}}>
+                                    {title}
+                                </CustomText>
+                                <CustomText lineHeight={20} size={13} color={colors.onSurface} textAlign={'center'}
+                                            customStyle={{
+                                                width: 296,
+                                                marginHorizontal: 32,
+                                                marginTop: 8,
+                                            }}>
+                                    {description}
+                                </CustomText>
+
                             </View>
                             <View style={styles.middle}>
-                                {props.children}
+                                {children}
                             </View>
                             <View style={styles.bottom}>
-                                <Text style={styles.bottomWrapper}>
-                                    {props.bottomContent}
-                                </Text>
+                                <CustomText weight={'bold'} size={13} color={colors.onSurface} textAlign={'center'}
+                                            customStyle={{
+                                                marginHorizontal: 16,
+                                                marginVertical: 16
+                                            }}>
+                                    {bottomContent}
+                                </CustomText>
                             </View>
                         </View>
 
                     </ImageBackground>
                 </View>
-            </TouchableWithoutFeedback>
-        </ScrollView>
+            </ScrollView>
+        )
     )
 }
 
@@ -69,6 +116,7 @@ const useThemedStyles = (colors) => {
     return StyleSheet.create({
         container: {
             flex: 1,
+            height: Dimensions.get('window').height,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -92,7 +140,6 @@ const useThemedStyles = (colors) => {
             flex: 3,
             width: '100%',
             alignItems: "center",
-            // backgroundColor:'red'
         },
         middle: {
             flex: 10,
@@ -100,8 +147,6 @@ const useThemedStyles = (colors) => {
             justifyContent: 'center',
             alignItems: "center",
             width: '100%',
-            // marginHorizontal: 32,
-            // backgroundColor:'yellow'
         },
         bottom: {
             flex: 2,
@@ -109,7 +154,6 @@ const useThemedStyles = (colors) => {
             justifyContent: 'flex-end',
             alignItems: "center",
             width: '100%',
-            // backgroundColor:'pink'
         },
         logoWrapper: {
             width: 114,
@@ -118,32 +162,10 @@ const useThemedStyles = (colors) => {
         },
         logo: {
             width: '100%',
-            height: '100%'
+            height: '100%',
+            color: colors.primary
         },
-        title: {
-            fontFamily: 'dana-bold',
-            color: colors.onSurface,
-            fontSize: 16,
-            marginTop: 16
-        },
-        description: {
-            fontFamily: (I18nManager.isRTL)?gStyles.danaPersianNumber.fontFamily: gStyles.fontMain.fontFamily,
-            color: colors.onSurface,
-            width: 296,
-            marginHorizontal: 32,
-            marginTop: 8,
-            fontSize: 14,
-            lineHeight: 20,
-            textAlign: 'center'
-        },
-        bottomWrapper: {
-            fontSize: 14,
-            color: colors.onSurface,
-            fontFamily: 'dana-bold',
-            marginHorizontal: 16,
-            marginVertical: 16,
-            textAlign: 'center'
-        }
     });
 };
+
 export default BaseLogin;

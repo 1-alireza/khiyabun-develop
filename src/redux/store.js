@@ -14,6 +14,12 @@ import themeReducer from "./slices/themeSlice";
 import loginReducer from "./slices/loginSlice";
 import languageReducer from "./slices/languageSlice";
 import profileReducer from "./slices/profileSlice";
+import workLogReducer from "./slices/workLogSlice";
+import fontSizeReducer from "./slices/fontSizeSlice";
+import noteSortReducer from "./slices/NoteSortBy";
+import exportDataReducer from "./slices/exportDataSlice";
+import userBlockSlice from "./slices/userBlockSlice";
+
 
 const persistConfig = {
     key: "root",
@@ -28,7 +34,13 @@ const store = configureStore({
         theme: themeReducer,
         login: loginReducer,
         language: languageReducer,
-        profile: profileReducer
+        profile: profileReducer,
+        workLog: workLogReducer,
+        fontSizeSlice: fontSizeReducer,
+        noteSortBy: noteSortReducer,
+        exportData: exportDataReducer,
+        userBlock: userBlockSlice
+
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

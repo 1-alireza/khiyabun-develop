@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
-import {Text, View, Modal, Pressable, StyleSheet, Dimensions} from 'react-native';
+import {View, Pressable, StyleSheet, Dimensions} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {useTheme} from "@react-navigation/native";
 import KhiyabunIcons from "./KhiyabunIcons";
+import CustomText from "./CustomText";
+import PersianDatePicker from "./JalaliDate";
 
-const Picker = ({type, size, placeHolder}) => {
+const Picker = ({type, calenderType = "en", size, placeHolder, label, supportText, customStyles, onDateChange}) => {
     const {colors} = useTheme();
     const styles = useThemedStyles();
     const [date, setDate] = useState(new Date());
@@ -15,39 +17,77 @@ const Picker = ({type, size, placeHolder}) => {
         setShowPicker(true);
     };
 
-    const handleChange = (event, selectedValue) => {
+    const handleChangeGregorian = (event, selectedValue) => {
         const currentValue = selectedValue || date;
+        let formattedDateTime;
+        if (type === 'date') {
+            formattedDateTime = currentValue.toISOString().split('T')[0];
+        } else if (type === 'time') {
+            formattedDateTime = currentValue.toTimeString().slice(0, 5);
+        }
+        setSelectedDateTime(formattedDateTime);
+        if (onDateChange && formattedDateTime) {
+            onDateChange(formattedDateTime);
+        }
         setDate(currentValue);
         setShowPicker(false);
-
-        if (type === 'date') {
-            setSelectedDateTime(currentValue.toISOString().split('T')[0]);
-        } else if (type === 'time') {
-            setSelectedDateTime(currentValue.toTimeString().slice(0, 5));
-        }
     };
 
+    const handleChangeJalali = (date) => {
+        onDateChange(date);
+        setSelectedDateTime(date);
+        setShowPicker(false);
+
+    }
+
     return (
-        <View>
-            <Pressable
-                style={[styles.wrapper, size === 1 ? {width: Dimensions.get('window').width / 2 - 10} : {width: "100%"}]}
-                onPress={showPickerModal}>
+        <>
+            <View style={customStyles}>
+                {label &&
+                <CustomText
+                    size={14} color={colors.onSurface} lineHeight={16}
+                    textAlign={'left'} customStyle={{marginBottom: -5, marginLeft: 3}}>
+                    {label}
+                </CustomText>
+                }
+                <Pressable
+                    style={[styles.wrapper, size === 1 ? {width: Dimensions.get('window').width / 2 - 10} : {width: "100%"}]}
+                    onPress={showPickerModal}>
+                    {!selectedDateTime ?
+                        <CustomText size={14} color={colors.onSurfaceLowest} textAlign={'left'} lineHeight={24}>
+                            {placeHolder}
+                        </CustomText> :
+                        <CustomText size={14} color={colors.onSurface} weight={'bold'} textAlign={'left'}
+                                    lineHeight={24}>
+                            {selectedDateTime}
+                        </CustomText>}
+                    <KhiyabunIcons name="calender-outline" size={24} color={colors.onSurface}/>
+                </Pressable>
 
-                {!selectedDateTime ? <Text style={styles.text}>{placeHolder}</Text> :
-                    <Text>{selectedDateTime}</Text>}
-                <KhiyabunIcons name="calender-outline" size={24} color={colors.onSurface}/>
-            </Pressable>
+                {showPicker && calenderType === "en" && <DateTimePicker
+                    testID="dateTimePicker"
+                    value={date}
+                    mode={type}
+                    is24Hour={true}
+                    display="default"
+                    onChange={handleChangeGregorian}
+                />}
+                {supportText &&
+                <CustomText
+                    size={12} color={colors.onSurfaceLow} lineHeight={16}
+                    textAlign={'left'} customStyle={{marginTop: 3, marginLeft: 3}}>
+                    {supportText}
+                </CustomText>}
+            </View>
 
-            {showPicker && <DateTimePicker
-                testID="dateTimePicker"
-                value={date}
-                mode={type}
-                is24Hour={true}
-                display="default"
-                onChange={handleChange}
-            />}
+            {showPicker && calenderType === "fa" &&
+                <PersianDatePicker
+                    onDateChange={(jalaliDate) => handleChangeJalali(jalaliDate)}
+                    // selectedDate={jToday}
+                />
+            }
+        </>
 
-        </View>
     );
 };
 
@@ -66,13 +106,6 @@ const useThemedStyles = () => {
             borderWidth: 1,
             borderColor: colors.outlineSurface,
             backgroundColor: colors.surfaceContainerLowest,
-        },
-        text: {
-            fontFamily: "dana-regular",
-            fontSize: 14,
-            textAlign: 'left',
-            lineHeight: 20,
-            color: colors.onSurfaceLowest,
         },
     });
 };

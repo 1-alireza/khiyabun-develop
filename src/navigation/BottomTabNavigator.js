@@ -12,8 +12,10 @@ import KhiyabunIcons from "../components/KhiyabunIcons";
 import {useNavigation, useTheme} from "@react-navigation/native";
 import IconList from "../screens/IconList";
 import PageHeader from "../components/PageHeader";
-import {Text, TouchableOpacity, View} from "react-native";
+import {Platform, Text, View} from "react-native";
 import TimeClockScreen from "../screens/TimeClock/TimeClockScreen";
+import gStyles from "../global-styles/GlobalStyles";
+
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigator = () => {
@@ -25,11 +27,11 @@ const BottomTabNavigator = () => {
             screenOptions={({route}) => ({
                 tabBarIcon: ({focused, size}) => {
                     let iconName;
-                    if (route.name === t('home')) {
+                    if (route.name === 'home') {
                         iconName = focused ? "home-bold" : "home-outline";
-                    } else if (route.name === t('profile')) {
+                    } else if (route.name === 'profile') {
                         iconName = focused ? "user-bold" : "user-outline";
-                    } else if (route.name === t('time_clock')) {
+                    } else if (route.name === 'time_clock') {
                         iconName = focused ? "clock-bold" : "clock-outline";
                     } else {
                         iconName = focused ? "category-bold" : "category-outline"
@@ -51,11 +53,11 @@ const BottomTabNavigator = () => {
                     fontWeight: "400",
                     lineHeight: 20,
                     marginTop: -8,
-                    fontFamily: "dana-regular",
+                    ...gStyles.fontMain
                 }
             })}
         >
-            <Tab.Screen name={t('home')}
+            <Tab.Screen name={'home'}
                         component={HomeScreen}
                         initialParams={{
                             name: "meysam"
@@ -71,17 +73,20 @@ const BottomTabNavigator = () => {
                                         rightIconName="notification-outline"
                                         onLeftIconPress={() => {
                                             navigation.navigate("HelpAndSupport");
+                                            if (Platform.OS !== 'android') window.history.pushState({}, 'HelpAndSupport');
                                         }}
                                         onRightIconPress={() => {
                                             navigation.navigate("Notifications");
+                                            if (Platform.OS !== 'android') window.history.pushState({}, 'Notifications');
                                         }}
                                         badgeCount={route.params?.badgeCount ?? 0}
                                     />
                                 );
-                            }
+                            },
+                            tabBarLabel: t('home')
                         }}
             />
-            <Tab.Screen name={t('time_clock')}
+            <Tab.Screen name={'time_clock'}
                         component={TimeClockScreen}
                         options={{
                             header: ({navigation, route, options, back}) => {
@@ -93,16 +98,17 @@ const BottomTabNavigator = () => {
                                         leftIconName="calender-outline"
                                         rightIconName="direct-notification-outline"
                                         onLeftIconPress={() => {
-                                            console.log("left icon pressed!")
                                             navigation.navigate("Timesheet");
+                                            if (Platform.OS !== 'android') window.history.pushState({}, 'Timesheet');
                                         }}
                                         onRightIconPress={() => {
-                                            console.log("right icon pressed!")
                                             navigation.navigate("Request");
+                                            if (Platform.OS !== 'android') window.history.pushState({}, 'Request');
                                         }}
                                     />
                                 );
-                            }
+                            },
+                            tabBarLabel: t('time_clock')
                         }}
             />
 
@@ -115,7 +121,7 @@ const BottomTabNavigator = () => {
             {/*                title: t('profile'),*/}
             {/*            }}*/}
             {/*/>*/}
-            <Tab.Screen name={t('board')}
+            <Tab.Screen name='board'
                         component={BoardScreen}
                         options={{
                             header: ({navigation, route, options, back}) => {
@@ -125,16 +131,20 @@ const BottomTabNavigator = () => {
                                         titleColor={colors.primary}
                                     />
                                 );
-                            }
+                            },
+                            tabBarLabel: t('board')
+
                         }}
             />
-            <Tab.Screen name={t('icons')}
+            <Tab.Screen name='icons'
                         component={IconList}
-                        options={
-                            {
-                                headerShown: true
-                            }
-                        }
+                // options={{
+                //         header: {
+                //             headerShown: true
+                //         },
+                //         tabBarLabel: t('icons')
+                //
+                //     }}
             />
 
         </Tab.Navigator>

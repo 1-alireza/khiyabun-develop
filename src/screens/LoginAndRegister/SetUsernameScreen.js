@@ -1,17 +1,20 @@
 import React, {useRef, useState} from "react";
-import {View, Text, StyleSheet, I18nManager} from "react-native";
+import {View, Text, StyleSheet, I18nManager, Platform} from "react-native";
 import {useTheme} from "@react-navigation/native";
 import {useTranslation} from "react-i18next";
 import BaseLogin from "../../components/BaseLogin";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
-import {DIGIT_REGEX, UPPERCASE_REGEX} from "../../utils/constant";
+import {DIGIT_REGEX, TOKEN_KEY, UPPERCASE_REGEX} from "../../utils/constant";
 import {CheckBox} from "@rneui/themed";
-import i18n from "i18next";
 import {postRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
 import gStyles from "../../global-styles/GlobalStyles"
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {signIn} from "../../redux/slices/loginSlice";
+import {useDispatch} from "react-redux";
+import CustomText from "../../components/CustomText";
 
 export const SetUsernameSection = ({uuid,navigation}) => {
     const {t} = useTranslation();
@@ -31,10 +34,12 @@ export const SetUsernameSection = ({uuid,navigation}) => {
     const [readRules, setReadRules] = useState(true);
     const [passwordHiddenText, setPasswordHiddenText] = useState(true);
     const [confirmPasswordHiddenText, setConfirmPasswordHiddenText] = useState(true);
-    const [loader, setLoader] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const passwordRef = useRef(null);
     const confirmPasswordRef = useRef(null);
+    const dispatch = useDispatch();
+
     const toggleCheckbox = () => setReadRules(!readRules);
 
     const onChangeUsernameHandler = (value) => {
@@ -97,7 +102,7 @@ export const SetUsernameSection = ({uuid,navigation}) => {
     const correctValues = (username.correct_value && password.entered_value.trim().length && confirmPassword.trim().length && password.length && password.entered_value === confirmPassword && readRules);
 
     const onSignupHandler = async () => {
-        setLoader(true);
+        setLoading(true);
         try {
             let api = "users",
                 body = {
@@ -105,14 +110,18 @@ export const SetUsernameSection = ({uuid,navigation}) => {
                     password:password.entered_value,
                     verificationId: uuid
             };
-            let response = await postRequest(api,body,false);
+            let response = await postRequest(api,body,"");
             console.log(response);
-            if(response.statusCode === 201){
-                errorHandling(response,"confirm");
+            if(response.statusCode >= 200 && response.statusCode < 300){
+                let token = response.data.token;
+                await AsyncStorage.setItem(TOKEN_KEY,token);
+                dispatch(signIn(token));
 
-                // navigation.navigate('SetProfile', {
-                //     is_edit: false
-                // })
+                navigation.navigate("SetProfile", {
+                    is_edit: false
+                });
+                if (Platform.OS !== 'android') window.history.pushState({}, 'SetProfile');
+                errorHandling(response,"confirm");
             }
             else {
                 let type = "error",
@@ -123,7 +132,8 @@ export const SetUsernameSection = ({uuid,navigation}) => {
                 else if(response.statusCode === 404){
                     type = "warning";
                     text = t("user_exist");
-                    navigation.navigate('LoginWithUsername')
+                    navigation.navigate("LoginWithUsername");
+                    if (Platform.OS !== 'android') window.history.pushState({}, 'LoginWithUsername');
                 }
                 errorHandling(text,type);
             }
@@ -131,7 +141,7 @@ export const SetUsernameSection = ({uuid,navigation}) => {
         catch (e){
             errorHandling(t("default_error"),"error");
         }
-        setLoader(false);
+        setLoading(false);
     }
 
 
@@ -164,9 +174,9 @@ export const SetUsernameSection = ({uuid,navigation}) => {
                         size={13}
                         color={password.length === null ? colors.onSurfaceContainer : (password.length ? colors.darkConfirm : colors.error)}
                     />
-                    <Text style={[styles.errorText,{
+                    <CustomText style={[styles.errorText,{
                         color: password.length === null ? colors.onSurfaceContainer : (password.length ? colors.darkConfirm : colors.error)
-                    }]}>{t("character_number")}</Text>
+                    }]}>{t("character_number")}</CustomText>
                 </View>
                 <View style={styles.conditionItem}>
                     <KhiyabunIcons
@@ -174,9 +184,9 @@ export const SetUsernameSection = ({uuid,navigation}) => {
                         size={13}
                         color={password.has_number === null ? colors.onSurfaceContainer : (password.has_number ? colors.darkConfirm : colors.error)}
                     />
-                    <Text style={[styles.errorText,{
+                    <CustomText style={[styles.errorText,{
                         color: password.has_number === null ? colors.onSurfaceContainer : (password.has_number ? colors.darkConfirm : colors.error)
-                    }]}>{t("use_a_number")}</Text>
+                    }]}>{t("use_a_number")}</CustomText>
                 </View>
                 <View style={styles.conditionItem}>
                     <KhiyabunIcons
@@ -184,9 +194,9 @@ export const SetUsernameSection = ({uuid,navigation}) => {
                         size={13}
                         color={password.has_uppercase === null ? colors.onSurfaceContainer : (password.has_uppercase ? colors.darkConfirm : colors.error)}
                     />
-                    <Text style={[styles.errorText,{
+                    <CustomText style={[styles.errorText,{
                         color: password.has_uppercase === null ? colors.onSurfaceContainer : (password.has_uppercase ? colors.darkConfirm : colors.error)
-                    }]}>{t("one_uppercase")}</Text>
+                    }]}>{t("one_uppercase")}</CustomText>
                 </View>
             </View>
             <View style={styles.inputWrapper}>
@@ -224,7 +234,7 @@ export const SetUsernameSection = ({uuid,navigation}) => {
                 label={t('sign_up')}
                 sizeButton="medium"
                 disabled={!correctValues}
-                showLoader={loader}
+                showLoading={loading}
             />
         </>
     )

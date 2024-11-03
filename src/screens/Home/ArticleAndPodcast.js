@@ -1,14 +1,15 @@
 import React, {useEffect, useState} from "react";
-import {View, Text, StyleSheet, Dimensions, I18nManager} from 'react-native';
+import {View, StyleSheet, Dimensions, I18nManager} from 'react-native';
 import {useTheme} from "@react-navigation/native";
 import {useTranslation} from "react-i18next";
-import HomeCard from "./HomeCartUI";
+import HomeCard from "./HomeCard";
 import Chips from "../../components/Chips";
 import Svg, {Path, LinearGradient, Defs, Stop} from 'react-native-svg';
-import gStyles from "../../global-styles/GlobalStyles";
 import {getRequest} from "../../utils/sendRequest";
 import {useSelector} from "react-redux";
 import CustomSkeleton from "../../components/CustomSkeleton";
+import ExternalLink from "../../components/ExternalLink";
+import CustomText from "../../components/CustomText";
 
 const CurvedLinesSVG = ({customStyle}) => {
     return (
@@ -144,7 +145,7 @@ const CurvedLinesSVG = ({customStyle}) => {
 
 function ArticleAndPodcast() {
     const {t} = useTranslation();
-    const lang = useSelector(state => state.language.language);
+    const userToken = useSelector(state => state.login.token);
     const {colors} = useTheme();
     const styles = useThemedStyles();
 
@@ -170,7 +171,7 @@ function ArticleAndPodcast() {
             fromTime: "2024-05-03T00:00:00",
             toTime: "2024-05-03T23:59:59",
         };
-        const res = await getRequest("feed/podcasts", body);
+        const res = await getRequest("feed/podcasts", body, userToken);
         if (res.statusCode === 200) {
             setLatestPodcast(res.data);
         }
@@ -185,64 +186,91 @@ function ArticleAndPodcast() {
             fromTime: "2024-05-03T00:00:00",
             toTime: "2024-05-03T23:59:59",
         };
-        const res = await getRequest("feed/articles", body);
+        const res = await getRequest("feed/articles", body, userToken);
         if (res.statusCode === 200) {
             setLatestArticle(res.data);
         }
     };
 
+
     return (
         <View style={styles.container}>
-            <HomeCard HeaderIcon={"radar-2-bold"} HeaderText={t("article_and_podcast")}>
+            <HomeCard HeaderIcon={"radar-2-bold"} HeaderText={t("article_and_podcast")}
+                      externalLink={"https://www.varzesh3.com/"}>
+
                 <View style={styles.wrapper}>
-
-                    <View style={styles.background}>
-                        <CurvedLinesSVG customStyle={{backgroundColor: colors.warningContainer}}/>
-                        {isLoading ?
-                            <CustomSkeleton width={160} height={175} cStyle={{position:"absolute"}}/>
-                            :
-                            <View style={styles.innerContent}>
-                                <View style={styles.content}>
-                                    <Chips customStyle={styles.chips} width={60} text={t("article")} height={30}
-                                           type="warning" transparent={false}/>
-                                    {latestArticle.length > 0 ?
-                                        <Text style={styles.text}>
-                                            {lang === 'fa' ? latestArticle[0].title.fa : latestArticle[0].title.en}
-                                        </Text> :
-                                        <Text style={styles.text}>{t("no_article_available")}</Text>}
-                                </View>
-                            </View>
-                        }
-
-                    </View>
-                    <View style={styles.background}>
-                        <CurvedLinesSVG customStyle={{backgroundColor: colors.errorContainer}}/>
-                        {isLoading ?
-                            <CustomSkeleton width={160} height={175} cStyle={{position:"absolute"}}/>
-                            :
-                            <View style={styles.innerContent}>
-                                <View style={styles.content}>
-                                    <Chips customStyle={styles.chips} width={70} text={t("podcast")} height={30}
-                                           type="error" transparent={false}/>
-                                    <View style={styles.textWrapper}>
-                                        {latestPodcast.length > 0 ? (
-                                            <>
-                                                <Text style={[styles.text, {color: colors.onSurfaceLow}]}>
-                                                    {t("episode")} {latestPodcast[0].episode}
-                                                </Text>
-                                                <Text style={styles.text}>
-                                                    {lang === 'fa' ? latestPodcast[0].title.fa : latestPodcast[0].title.en}
-                                                </Text>
-                                            </>
-                                        ) : (
-                                            <Text style={styles.text}>{t("no_podcast_available")}</Text>
-                                        )}
+                    <ExternalLink url={"https://www.varzesh3.com/"}>
+                        <View style={styles.background}>
+                            <CurvedLinesSVG customStyle={{backgroundColor: colors.warningContainer}}/>
+                            {isLoading ?
+                                <CustomSkeleton width={160} height={175} cStyle={{position: "absolute"}}/>
+                                :
+                                <View style={styles.innerContent}>
+                                    <View style={styles.content}>
+                                        <Chips customStyle={styles.chips} width={60} text={t("article")} height={30}
+                                               type="warning" transparent={false}/>
+                                        {latestArticle.length > 0 ?
+                                            <CustomText size={13} weight={'bold'} color={colors.onSurface}
+                                                        textAlign={I18nManager.isRTL ? "left" : "right"} lineHeight={20}
+                                                        customStyle={{marginHorizontal: 10}}>
+                                                {latestArticle[0].title}
+                                            </CustomText>
+                                            :
+                                            <CustomText size={13} weight={'bold'} color={colors.onSurface}
+                                                        textAlign={I18nManager.isRTL ? "left" : "right"} lineHeight={20}
+                                                        customStyle={{marginHorizontal: 10}}>
+                                                {t("no_article_available")}
+                                            </CustomText>
+                                        }
                                     </View>
                                 </View>
-                            </View>
-                        }
-                    </View>
+                            }
+                        </View>
+                    </ExternalLink>
+
+                    <ExternalLink url={"https://www.varzesh3.com/"}>
+                        <View style={styles.background}>
+                            <CurvedLinesSVG customStyle={{backgroundColor: colors.errorContainer}}/>
+                            {isLoading ?
+                                <CustomSkeleton width={160} height={175} cStyle={{position: "absolute"}}/>
+                                :
+                                <View style={styles.innerContent}>
+                                    <View style={styles.content}>
+                                        <Chips customStyle={styles.chips} width={70} text={t("podcast")} height={30}
+                                               type="error" transparent={false}/>
+                                        <View style={styles.textWrapper}>
+                                            {latestPodcast.length > 0 ? (
+                                                <>
+                                                    <CustomText size={13} color={colors.onSurfaceLow}
+                                                                textAlign={I18nManager.isRTL ? "left" : "right"}
+                                                                lineHeight={20}
+                                                                customStyle={{marginHorizontal: 10}}>
+                                                        {t("episode")} {latestPodcast[0].episode}
+                                                    </CustomText>
+                                                    <CustomText size={13} weight={'bold'} color={colors.onSurface}
+                                                                textAlign={I18nManager.isRTL ? "left" : "right"}
+                                                                lineHeight={20}
+                                                                customStyle={{marginHorizontal: 10}}>
+                                                        {latestPodcast[0].title}
+                                                    </CustomText>
+                                                </>
+                                            ) : (
+
+                                                <CustomText size={13} weight={'bold'} color={colors.onSurface}
+                                                            textAlign={I18nManager.isRTL ? "left" : "right"}
+                                                            lineHeight={20}
+                                                            customStyle={{marginHorizontal: 10}}>
+                                                    {t("no_podcast_available")}
+                                                </CustomText>
+                                            )}
+                                        </View>
+                                    </View>
+                                </View>
+                            }
+                        </View>
+                    </ExternalLink>
                 </View>
+
             </HomeCard>
         </View>
     );
@@ -250,7 +278,6 @@ function ArticleAndPodcast() {
 
 const useThemedStyles = () => {
     const {colors} = useTheme();
-    const lang = useSelector(state => state.language.language);
 
     return StyleSheet.create({
         container: {
@@ -283,14 +310,6 @@ const useThemedStyles = () => {
             justifyContent: "space-between",
             height: 160,
             width: 155,
-        },
-        text: {
-            fontFamily: lang === 'fa' ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
-            color: colors.onSurface,
-            marginHorizontal: 10,
-            fontSize: 14,
-            lineHeight: 20,
-            textAlign: I18nManager.isRTL ? "left" : "right",
         },
     });
 };

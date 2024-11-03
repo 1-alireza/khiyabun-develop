@@ -10,17 +10,20 @@ import {
     MenuTrigger,
 } from 'react-native-popup-menu';
 import CustomModal from "../../components/CustomModal";
-import {CheckBox} from "@rneui/themed";
 import gStyles from '../../global-styles/GlobalStyles'
 import {useTranslation} from "react-i18next";
 import {deleteRequest, putRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
 import jalaali from "jalaali-js";
+import {useSelector} from "react-redux";
+import CustomText from "../../components/CustomText";
+import CustomMenu from "../../components/customMenu";
 
 function TextNote({item, onDeleteCallBack, openEditSheet}) {
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false)
     const [checked, setChecked] = useState(false);
+    const userToken = useSelector(state => state.login.token);
     const [isLocked, setIsLocked] = useState(item.isPrivate)
     const {t, i18n} = useTranslation();
     const {colors} = useTheme();
@@ -28,12 +31,12 @@ function TextNote({item, onDeleteCallBack, openEditSheet}) {
     const isRTL = I18nManager.isRTL;
     const currentDate = new Date(item.createDate);
     const jalaliDate = jalaali.toJalaali(currentDate);
-
     const dayJalali = jalaliDate.jd;
     const monthJalali = getJalaliMonthName(jalaliDate.jm);
     const yearJalali = jalaliDate.jy;
     const hourJalali = currentDate.getHours();
     const minuteJalali = currentDate.getMinutes();
+
 
     const formattedJalaliDate = `${dayJalali} ${monthJalali} ${yearJalali}, ${hourJalali}:${minuteJalali < 10 ? "0" + minuteJalali : minuteJalali} ${hourJalali >= 12 ? "ق.ظ." : "ب.ظ."}`;
 
@@ -54,20 +57,20 @@ function TextNote({item, onDeleteCallBack, openEditSheet}) {
         minute: '2-digit', // Minute (e.g., 24)
         hour12: true, // Use 12-hour clock (am/pm)
         locale: 'en-US', // Set the locale to Iranian Persian
-        // locale: 'fa-IR', // Set the locale to Iranian Persian
     };
     const formattedDate = currentDate.toLocaleString('en-US', options);
 
     const toggleModal = () => setIsModalVisible(!isModalVisible);
+
     const toggleDeleteModal = () => setIsDeleteModalVisible(!isDeleteModalVisible);
-    const toggleCheckbox = () => setChecked(!checked);
+
 
     const toggleLock = async () => {
         try {
             const body = {
                 isPrivate: !item.status,
             }
-            let res = await putRequest(`notes?id=${item.id}`, body)
+            let res = await putRequest(`notes?id=${item.id}`, body,userToken)
             console.log("activeTeam", res)
             if (res.statusCode === 200) {
                 setIsLocked(!isLocked);
@@ -81,9 +84,10 @@ function TextNote({item, onDeleteCallBack, openEditSheet}) {
         onDeleteCallBack()
         setIsModalVisible(!isModalVisible);
     };
+
     const deleteNote = async () => {
         try {
-            let res = await deleteRequest(`notes?id=${item.id}`)
+            let res = await deleteRequest(`notes?id=${item.id}`,{},userToken)
             console.log("note deleted", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -97,37 +101,22 @@ function TextNote({item, onDeleteCallBack, openEditSheet}) {
         onDeleteCallBack()
     }
 
-
     const PrivateModal = () => {
         return (
             <View>
-                <Text style={styles.secondaryText}>
-                    {t("status_warning")}
-                </Text>
-                <View style={styles.deleteWrapper}>
-                    <CheckBox
-                        iconRight={false}
-                        size={20}
-                        checked={checked}
-                        onPress={toggleCheckbox}
-                        iconType="material-community"
-                        checkedIcon="checkbox-marked"
-                        uncheckedIcon="checkbox-blank-outline"
-                        title={t("do_not_show")}
-                        checkedColor={colors.primary}
-                        containerStyle={styles.checkBox}
-                        textStyle={styles.deleteText}
-                    />
+                <CustomText size={14} lineHeight={20} textAlign={"justify"} color={colors.onSurfaceLow}>
+                    {t("change_warning")}
+                </CustomText>
 
-                </View>
             </View>
         )
     }
+
     const DeleteModal = () => {
         return (
-            <Text style={styles.logoutModalText}>
+            <CustomText size={14} lineHeight={24} color={colors.onSurfaceHigh}>
                 {t("delete_note_warning")}
-            </Text>
+            </CustomText>
         )
     }
 
@@ -147,14 +136,36 @@ function TextNote({item, onDeleteCallBack, openEditSheet}) {
         }
     }
 
+    const menuItems = [
+        {
+            text: "edit",
+            onSelect: () => openEditSheet(item),
+            icon: "edit-outline"
+        },
+        {
+            text: "share",
+            onSelect:onShare,
+            icon: "share-outline"
+        },
+        {
+            text: "Delete",
+            onSelect: deleteNote,
+            icon: "trash-outline",
+            style:styles.popUpOptionLast
+        },
+    ];
+
+
+
 
     return (
         <>
             <View style={styles.note}>
                 <View style={styles.noteHeader}>
-                    <Text style={styles.noteHeaderText}>
+                    <CustomText size={16} lineHeight={24} color={colors.onSurfaceHigh} weight={"bold"} customStyle={styles.noteHeaderText}>
                         {item.title}
-                    </Text>
+                    </CustomText>
+
                     <View style={styles.noteHeaderIcon}>
                         <Pressable onPress={() => {
                             toggleModal()
@@ -172,39 +183,22 @@ function TextNote({item, onDeleteCallBack, openEditSheet}) {
                                 )
                             }
                         </Pressable>
-                        <Menu>
-                            <MenuTrigger>
-                                <KhiyabunIcons name={"more-bold"} size={20} color={colors.onSurface}/>
-                            </MenuTrigger>
-                            <MenuOptions optionsContainerStyle={styles.popUp}>
-                                <MenuOption style={styles.popUpOption} onSelect={() => openEditSheet(item)}>
-                                    <KhiyabunIcons name={"edit-outline"} size={20} color={colors.onSurfaceHigh}/>
-                                    <Text style={styles.popUpOptionText}>{t("edit")}</Text>
-                                </MenuOption>
-                                <MenuOption style={styles.popUpOption} onSelect={() => onShare()}>
-                                    <KhiyabunIcons name={"share-outline"} size={20} color={colors.onSurfaceHigh}/>
-                                    <Text style={styles.popUpOptionText}>{t("share")}</Text>
-                                </MenuOption>
-                                <MenuOption style={styles.popUpOptionLast} onSelect={toggleDeleteModal}>
-                                    <KhiyabunIcons name={"trash-outline"} size={20} color={colors.onSurfaceHigh}/>
-                                    <Text style={styles.popUpOptionText}>{t("Delete")}</Text>
-                                </MenuOption>
-                            </MenuOptions>
-                        </Menu>
+                        <CustomMenu items={menuItems} />
                     </View>
                 </View>
                 {item.type === "TEXT" && (
-                    <Text style={styles.noteText}>
+                    <CustomText size={12} lineHeight={16} customStyle={styles.noteText} color={colors.onSurfaceContainer} weight={"bold"} textAlign={"justify"}>
                         {item.text}
-                    </Text>
+                    </CustomText>
+
                 )}
-                {item.type === "audio" && (
-                    <VoicePlayer audioFile={item.content}/>
+                {item.type === "VOICE" && (
+                    <VoicePlayer audioFile={`http://${item.voice.downloadUrl}`}/>
                 )}
 
-                <Text style={styles.noteFooterText}>
+                <CustomText size={10} lineHeight={16} color={colors.onSurfaceLowest} weight={"bold"} >
                     {isRTL ? formattedJalaliDate : formattedDate}
-                </Text>
+                </CustomText>
             </View>
             <CustomModal type={"warning"}
                          isVisible={isModalVisible}
@@ -214,7 +208,6 @@ function TextNote({item, onDeleteCallBack, openEditSheet}) {
                          hasCloseIcon={true}
                          modalBody={<PrivateModal/>}
                          modalTitle={t("note_status")}
-                         disabled={!checked}
                          actionCallback={toggleLock}/>
             <CustomModal type={"warning"}
                          isVisible={isDeleteModalVisible}
@@ -250,11 +243,7 @@ const useThemedStyles = (colors) => {
             color: colors.onSurfaceHigh
         },
         noteHeaderText: {
-            fontSize: 16,
-            lineHeight: 24,
-            width: "70%",
-            fontFamily: "dana-bold",
-            color: colors.onSurfaceHigh
+            width: "70%"
         },
         noteHeaderIcon: {
             flexDirection: "row",
@@ -263,19 +252,22 @@ const useThemedStyles = (colors) => {
             gap: 8
         },
         noteText: {
-            fontSize: 12,
-            lineHeight: 16,
-            fontFamily: gStyles.fontBold.fontFamily,// "dana-regular",
-            color: colors.onSurfaceContainer,
             marginVertical: 8,
             maxHeight: 144,
-            textAlign: "justify"
         },
         noteFooterText: {
             color: colors.onSurfaceLowest,
             fontSize: 10,
-            fontFamily: 'dana-regular',
+            fontFamily: gStyles.fontMain.fontFamily,
             lineHeight: 16
+        },
+        popUpRTl: {
+            borderRadius: 8,
+            backgroundColor: colors.surfaceContainerLowest,
+            position: "relative",
+            left:0,
+            marginLeft:185,
+            paddingRight:10,
         },
         popUp: {
             borderRadius: 8,
@@ -300,21 +292,20 @@ const useThemedStyles = (colors) => {
             height: 57,
             gap: 8,
             paddingVertical: 8,
-            paddingHorizontal: 12
+            paddingHorizontal: 12,
 
         },
         popUpOptionText: {
             fontSize: 16,
             lineHeight: 24,
-
-            fontFamily: 'dana-regular',
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.onSurfaceHigh
         },
         secondaryText: {
             fontSize: 14,
             lineHeight: 20,
             color: colors.onSurfaceLow,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             textAlign: "justify"
         },
         checkBox: {
@@ -332,7 +323,7 @@ const useThemedStyles = (colors) => {
             lineHeight: 24,
             width: "90%",
             color: colors.onSurfaceHigh,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             textAlign: "justify"
         },
         deleteWrapper: {

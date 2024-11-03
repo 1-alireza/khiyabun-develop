@@ -1,21 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getRequest } from '../../utils/sendRequest';
+import {deleteUserAccount, receiveProfileData, registerUser, updateUserProfile} from "../actions/profileAction"
 
-// Async action to fetch profile data
-export const profileData = createAsyncThunk(
-    'profile/setProfile',
-    async (api, thunkAPI) => {
-        try {
-            return await getRequest(api);
-        } catch (e) {
-            return thunkAPI.rejectWithValue(e.response);
-        }
-    }
-);
 
 // Initial state
 const initialState = {
     profileData: {},
+    loading: false,
+    error: null
 };
 
 // Profile slice
@@ -29,17 +20,43 @@ const profileSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(profileData.pending, (state) => {
+            .addCase(receiveProfileData.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(profileData.fulfilled, (state, action) => {
+            .addCase(receiveProfileData.fulfilled, (state, action) => {
                 state.loading = false;
-                state.profileData = action.payload;
+                state.profileData = action.payload.data;
             })
-            .addCase(profileData.rejected, (state, action) => {
+            .addCase(receiveProfileData.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload ? action.payload.message : 'Failed to fetch data';
+            })
+            .addCase(registerUser.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(registerUser.fulfilled, (state, action) => {
+                state.loading = false;
+            })
+            .addCase(registerUser.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload ? action.payload.message : 'Failed to add data';
+            })
+            .addCase(updateUserProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.profileData = action.payload.data;
+            })
+            .addCase(updateUserProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload ? action.payload.message : 'Failed to fetch data';
+            })
+            .addCase(deleteUserAccount.fulfilled, (state, action) => {
+                //write delete account logic
             });
     },
 });

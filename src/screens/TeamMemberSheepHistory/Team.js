@@ -57,16 +57,21 @@ function Team({item}) {
     return (
         <Pressable style={styles.blockUser}>
             <View style={styles.userData}>
-                {item.teamImage == "null" ? (
-                        <Image source={avatar} style={styles.avatarImage}/>
-
+                {item.teamImage ? (
+                        <Image source={{uri: `http://${item.teamImage.downloadUrl}`}} style={styles.avatarImage}
+                               onError={(error) => console.log('Image failed to load', error.nativeEvent.error)}
+                        />
                     ) :
-                    <View style={styles.contactProfile}>
-                        <Text style={styles.contactShortName}>
-                            {trimmedName}
-                        </Text>
-                    </View>
+
+                    (
+                        <View style={styles.contactProfile}>
+                            <Text style={styles.contactShortName}>
+                                {trimmedName}
+                            </Text>
+                        </View>
+                    )
                 }
+
                 <View>
                     <Text style={styles.username}>
                         {item.teamName}
@@ -103,7 +108,7 @@ const useThemedStyles = (colors, isRTl) => {
             alignItems: "center",
         },
         contactShortName: {
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             fontSize: 18,
             color: colors.surfaceContainerLowest,
             marginTop: 4
@@ -116,7 +121,7 @@ const useThemedStyles = (colors, isRTl) => {
         username: {
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.onSurface
 
         },
@@ -128,7 +133,7 @@ const useThemedStyles = (colors, isRTl) => {
         },
         unBlock: {
             color: colors.darkPrimary,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             fontSize: 14,
             lineHeight: 20
         },

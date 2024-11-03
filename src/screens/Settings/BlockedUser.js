@@ -3,7 +3,8 @@ import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
 import React from "react";
 import avatar from "../../../assets/img/3d_avatar_21.png";
-
+import gStyles from "../../global-styles/GlobalStyles";
+import CustomText from "../../components/CustomText";
 
 function BlockedUser({item}) {
     const {t, i18n} = useTranslation();
@@ -13,31 +14,31 @@ function BlockedUser({item}) {
     return (
         <Pressable style={styles.blockUser}>
             <View style={styles.userData}>
-                {item.photo!=="undefined"&&(
-                    <Image source={avatar} style={styles.avatarImage} />
+                {item.photo !== "undefined" && (
+                    <Image source={avatar} style={styles.avatarImage}/>
 
                 )}
-                {item.photo==="undefined"&&(
+                {item.photo === "undefined" && (
                     <View style={styles.contactProfile}>
-                        <Text style={styles.contactShortName}>
+                        <CustomText size={18} color={colors.surfaceContainerLowest} customStyle={styles.contactShortName} >
                             M
-                        </Text>
+                        </CustomText>
                     </View>
                 )}
                 <View>
-                    <Text style={styles.username}>
+                    <CustomText size={16} lineHeight={24}  color={colors.onSurface}  weight={"bold"}  >
                         {item.name}
-                    </Text>
-                    <Text style={styles.userDistance}>
+                    </CustomText>
+                    <CustomText size={14} lineHeight={20} weight={"bold"}  color={colors.onSurfaceLow}  >
                         {item.distance}
-                    </Text>
+                    </CustomText>
                 </View>
 
             </View>
-            <Pressable onPress={()=>alert("user unblocked")}>
-                <Text style={styles.unBlock}>
+            <Pressable onPress={() => alert("user unblocked")}>
+                <CustomText size={14} lineHeight={20} weight={"bold"}  color={colors.darkPrimary}  >
                     {t("Unblock")}
-                </Text>
+                </CustomText>
             </Pressable>
         </Pressable>
     )
@@ -61,34 +62,12 @@ const useThemedStyles = (colors) => {
             alignItems: "center",
         },
         contactShortName: {
-            fontFamily: "dana-bold",
-            fontSize: 18,
-            color: colors.surfaceContainerLowest,
             marginTop: 4
         },
         userData: {
             flexDirection: "row",
             alignItems: "center",
             gap: 16
-        },
-        username: {
-            fontSize: 16,
-            lineHeight: 24,
-            fontFamily: "dana-regular",
-            color: colors.onSurface
-
-        },
-        userDistance: {
-            fontFamily: "dana-bold",
-            fontSize: 14,
-            lineHeight: 20,
-            color: colors.onSurfaceLow
-        },
-        unBlock:{
-            color:colors.darkPrimary,
-            fontFamily:"dana-bold",
-            fontSize:14,
-            lineHeight:20
         },
         avatarImage: {
             width: 40,

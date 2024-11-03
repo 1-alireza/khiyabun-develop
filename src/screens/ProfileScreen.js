@@ -19,14 +19,14 @@ const openModal=()=>{
     const showToastHandler = () => {
         CustomToast.show(t("welcome"),"warning");
     }
-    const {name} = route.params;
+    // const {name} = route.params;
     const {t} = useTranslation();
 
-    useLayoutEffect(() =>{
-        navigation.setOptions({
-            title: name
-        })
-    },[navigation, name])
+    // useLayoutEffect(() =>{
+    //     navigation.setOptions({
+    //         title: name
+    //     })
+    // },[navigation, name])
     return(
         <View style={{height:"100%"}}>
             <Text>

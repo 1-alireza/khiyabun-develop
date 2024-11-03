@@ -3,20 +3,25 @@ import {useTheme} from "@react-navigation/native";
 import {Pressable, StyleSheet, Text, View} from "react-native";
 import Sheet from "../../components/Sheet";
 import React from "react";
-import KhiyabunIcons from "../../components/KhiyabunIcons";
 import Button from "../../components/Button";
+import gStyles from  "../../global-styles/GlobalStyles"
+import CustomText from "../../components/CustomText";
 
 const AddRequestSheet = ({isVisible, onClose, Callback}) => {
     const {t, i18n} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
+
+
+
     const getReqType=(reqType)=>{
         Callback(reqType)
     }
     return (
         <Sheet isOpen={isVisible} fitContent={true} onClose={onClose} snapPoint={500}>
             <View style={styles.sheetHeader}>
-                <Text style={styles.sheetHeaderText}>{t("request_type")}</Text>
+                <CustomText lineHeight={16} weight={"bold"} color={colors.onSurface}>{t("request_type")}</CustomText>
+
             </View>
             <View style={styles.sheetBody}>
                 <Button label={t("time_off_request")} sizeButton={"medium"} style={styles.selectButton}
@@ -57,7 +62,7 @@ const useThemedStyles = (colors) => {
         sheetHeaderText: {
             paddingHorizontal: 16,
             color: colors.onSurface,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             lineHeight: 24
         },
         selectButton: {
@@ -71,7 +76,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
 

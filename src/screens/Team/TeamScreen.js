@@ -8,12 +8,14 @@ import KhiyabunIcons from "../../components/KhiyabunIcons";
 import AddTeamSheet from "./AddTeamSheet";
 import {getRequest} from "../../utils/sendRequest";
 import EmptyData from "../../components/EmptyData";
+import {useSelector} from "react-redux";
 
 const avatar = require("../../../assets/img/3d_avatar_21.png");
 
 
 function TeamsScreen() {
     const {t, i18n} = useTranslation();
+    const userToken = useSelector(state => state.login.token);
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
     const [isVisible, setIsVisible] = useState(false)
@@ -26,7 +28,7 @@ function TeamsScreen() {
     }, []);
 
     const getTeams = async () => {
-        let res = await getRequest("profile/current_teams")
+        let res = await getRequest("profile/current_teams", {}, userToken)
         console.log("user Teams", res.data)
         setTeamData(teamsData => res.data)
         closeSheet()
@@ -62,7 +64,7 @@ function TeamsScreen() {
                         />
                     </Card>
                 </View> :
-               <EmptyData hasSearch={false}/>
+                <EmptyData hasSearch={false}/>
 
             }
 

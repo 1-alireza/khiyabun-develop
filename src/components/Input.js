@@ -1,9 +1,10 @@
 import React, {useState, forwardRef} from 'react';
-import {View, TextInput, Text, StyleSheet, Pressable, I18nManager} from 'react-native';
+import {View, TextInput, StyleSheet, Pressable, I18nManager} from 'react-native';
 import KhiyabunIcons from "./KhiyabunIcons";
 import {useTheme} from "@react-navigation/native";
 import Button from "./Button";
 import gStyles from "../global-styles/GlobalStyles"
+import CustomText from "./CustomText";
 
 const Input = forwardRef(({
                               label,
@@ -26,7 +27,8 @@ const Input = forwardRef(({
                               secureTextEntry,
                               onFocus,
                               iconFunctionCallBack,
-                              onEndEditing
+                              onEndEditing,
+                              onPressIn
                           }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const styles = useThemedStyles();
@@ -43,9 +45,6 @@ const Input = forwardRef(({
     const handleIconClick = () => {
         iconFunctionCallBack();
     }
-
-
-    // console.log(customStyles)
 
     let borderColor;
     if (error) {
@@ -76,7 +75,13 @@ const Input = forwardRef(({
 
     return (
         <>
-            {label && <Text style={styles.inputLabel}>{label}</Text>}
+            {label &&
+                <CustomText
+                    size={14} color={colors.onSurface} lineHeight={16}
+                    textAlign={'left'} customStyle={{marginBottom: 5, marginLeft: 3}}>
+                    {label}
+                </CustomText>
+            }
             <View style={[styles.inputContainer, customStyles, {borderColor, backgroundColor}]}>
                 {leftIcon && type !== "number" &&
                     <KhiyabunIcons name={leftIcon} size={24}
@@ -84,12 +89,32 @@ const Input = forwardRef(({
                                    style={{marginRight: 5}}/>}
 
                 {type === 'number' && prefixNumber && (
-                    <Text style={[styles.prefix, {color: textColor}]}>{prefixNumber}</Text>)}
+                    <CustomText
+                        size={14}
+                        color={textColor}
+                        lineHeight={20}
+                        textAlign={'left'}
+                        customStyle={{
+                            marginTop: 3,
+                            marginLeft: 8,
+                            marginRight: 8,
+                            paddingRight: 16,
+                            borderRightWidth: 1,
+                            borderRightColor: colors.outlineSurface,
+                            gap: 8,
+                        }}>
+                        {prefixNumber}
+                    </CustomText>
+                )}
 
                 {type === 'file' ? (
                     <>
                         <View style={styles.fileInput}>
-                            <Text style={{color: textColor}}>{value || placeholder}</Text>
+                            <CustomText
+                                size={12} color={textColor} lineHeight={16}
+                                textAlign={'left'} customStyle={{marginTop: 3, marginLeft: 3}}>
+                                {value || placeholder}
+                            </CustomText>
                         </View>
                         <Button
                             onPress={onFileSelect}
@@ -121,6 +146,8 @@ const Input = forwardRef(({
                         maxLength={maxLength}
                         secureTextEntry={secureTextEntry}
                         onEndEditing={onEndEditing}
+                        onPressIn={onPressIn}
+
                     />
                 )}
                 {(rightIcon) ?
@@ -143,7 +170,12 @@ const Input = forwardRef(({
                                        style={styles.icon}/> : ""
                 }
             </View>
-            {supportText && <Text style={[styles.supportText, {color: textColor}]}>{supportText}</Text>}
+            {supportText &&
+                <CustomText
+                    size={12} color={textColor} lineHeight={16}
+                    textAlign={'left'} customStyle={{marginTop: 3, marginLeft: 3}}>
+                    {supportText}
+                </CustomText>}
         </>
     );
 });
@@ -156,54 +188,23 @@ const useThemedStyles = () => {
         //     marginVertical: 10,
         //     width: "100%"
         // },
-        inputLabel: {
-            marginBottom: 5,
-            marginLeft: 3,
-            fontSize: 14,
-            fontWeight: '400',
-            lineHeight: 16,
-            textAlign: "left",
-            color: colors.onSurface
-        },
         inputContainer: {
-            direction: "ltr",
+            writingDirection: "ltr",
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
             borderRadius: 8,
             padding: 10,
             height: 48,
-
         },
         input: {
-            fontFamily: (I18nManager.isRTL)?gStyles.danaPersianNumber.fontFamily: gStyles.fontMain.fontFamily,
+            fontFamily: (I18nManager.isRTL) ? gStyles.danaPersianNumber.fontFamily : gStyles.fontMain.fontFamily,
             flex: 1,
+            outlineStyle: 'none'
         },
         fileInput: {
             flex: 1,
             paddingVertical: 10,
-        },
-        supportText: {
-            ...gStyles.fontMain,
-            marginTop: 3,
-            marginLeft: 3,
-            fontSize: 12,
-            fontWeight: '400',
-            lineHeight: 16,
-            textAlign: "left",
-        },
-        prefix: {
-            fontFamily: (I18nManager.isRTL)?gStyles.danaPersianNumber.fontFamily: gStyles.fontMain.fontFamily,
-            paddingLeft: 8,
-            paddingRight: 16,
-            marginRight: 8,
-            fontSize: 14,
-            fontWeight: '400',
-            lineHeight: 20,
-            textAlign: "left",
-            borderRightWidth: 1,
-            borderRightColor: colors.outlineSurface,
-            gap: 8,
         },
         chooseFileButtonText: {
             color: colors.darkPrimary,

@@ -1,8 +1,9 @@
 import React from "react";
-import {View, Text, FlatList, StyleSheet} from 'react-native';
+import {View, FlatList, StyleSheet} from 'react-native';
 import {useTheme} from "@react-navigation/native";
-import HomeCard from "./HomeCartUI";
+import HomeCard from "./HomeCard";
 import {useTranslation} from "react-i18next";
+import CustomText from "../../components/CustomText";
 
 const data = [
     {time_from: '2:30 pm', time_to: '3:00 pm', with: 'Alireza zare, Mohammad, Ahmad'},
@@ -10,12 +11,23 @@ const data = [
 ];
 const Meeting = () => {
     const {t} = useTranslation();
+    const {colors} = useTheme();
     const styles = useThemedStyles();
 
     const renderItem = ({item}) => (
         <>
-            <Text style={styles.meetingTime}>{item.time_from} - {item.time_to}</Text>
-            <Text style={styles.meetingWith}>With {item.with}</Text>
+            <CustomText size={15} color={colors.onSurface}
+                        weight={'bold'}
+                        textAlign={'left'}
+                        lineHeight={24}>
+
+                {item.time_from} - {item.time_to}
+            </CustomText>
+            <CustomText size={13} color={colors.onSurfaceLow}
+                        textAlign={'left'}
+                        lineHeight={20}>
+                With {item.with}
+            </CustomText>
         </>
     );
 
@@ -39,25 +51,6 @@ const useThemedStyles = () => {
     return StyleSheet.create({
         container: {
             marginBottom: 20,
-        },
-        wrapper: {
-            // marginTop: 10,
-        },
-        meetingTime: {
-            fontFamily: "dana-bold",
-            color: colors.onSurface,
-            fontSize: 16,
-            fontWeight: "500",
-            lineHeight: 24,
-            textAlign: "left",
-        },
-        meetingWith: {
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceLow,
-            fontSize: 14,
-            fontWeight: "400",
-            lineHeight: 20,
-            textAlign: "left",
         },
         separator: {
             height: 1,

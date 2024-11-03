@@ -1,4 +1,4 @@
-import {useTheme} from "@react-navigation/native";
+import { useTheme } from "@react-navigation/native";
 import {
     FlatList,
     Platform,
@@ -10,7 +10,7 @@ import {
 import Input from "../../components/Input";
 import Card from "../../components/Card";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
-import React, {useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CheckListItem from "./CheckListItem";
 import AddCheckListSheet from "./AddCheckListSheet";
 import EditCheckListSheet from "./EditCheckListSheet";
@@ -20,14 +20,18 @@ import {
     MenuOption,
     MenuTrigger,
 } from 'react-native-popup-menu';
-import {useTranslation} from "react-i18next";
-import {getRequest} from "../../utils/sendRequest";
+import { useTranslation } from "react-i18next";
+import { getRequest } from "../../utils/sendRequest";
 import EmptyData from "../../components/EmptyData";
+import { useSelector } from "react-redux";
+import globalStyles from "../../global-styles/GlobalStyles";
+import CustomMenu from "../../components/customMenu";
 
 
 function CheckListScreen() {
-    const {colors} = useTheme();
-    const {t, i18n} = useTranslation();
+    const userToken = useSelector(state => state.login.token);
+    const { colors } = useTheme();
+    const { t, i18n } = useTranslation();
     const [isSheetVisible, setIsSheetVisible] = useState(false)
     const [isEditSheetVisible, setIsEditSheetVisible] = useState(false)
     const [refreshing, setRefreshing] = useState(false);
@@ -62,7 +66,7 @@ function CheckListScreen() {
     }
 
     const getCheckLists = async () => {
-        let res = await getRequest("checklists")
+        let res = await getRequest("checklists", {}, userToken)
         console.log("checklists", res)
         setData(data => res.data)
         if (data.length > 0) {
@@ -75,7 +79,7 @@ function CheckListScreen() {
         const body = {
             searchWord: requestValue
         }
-        let res = await getRequest("checklists", body)
+        let res = await getRequest("checklists", body, userToken)
         console.log("serached check", res)
         setData(data => res.data)
         if (res.data.length <= 0) {
@@ -100,8 +104,8 @@ function CheckListScreen() {
 
     const closeSheet = () => setIsSheetVisible(false)
 
-    const renderItem = ({item}) => <CheckListItem item={item}
-                                                  editCallback={openEditSheet} onEditCallback={getCheckLists}/>;
+    const renderItem = ({ item }) => <CheckListItem item={item}
+        editCallback={openEditSheet} onEditCallback={getCheckLists} />;
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -117,10 +121,29 @@ function CheckListScreen() {
         });
     }
 
+
+    const menuItems = [
+        {
+            text: "Private",
+            onSelect: () => openSheet(true),
+            icon: "lock-outline"
+        },
+        {
+            text: "Public",
+            onSelect: () => openSheet(false),
+            icon: "unlock-outline"
+        },
+    ];
+
+    const triggerIcon = {
+        name: "add-outline",
+        size: 20
+    }
+
     return (
         <>
             <Input placeholder={"Search ..."} onChangeText={searchCheckList} rightIcon={"search-normal-outline"}
-                   customStyles={styles.input}/>
+                customStyles={styles.input} />
             {data.length > 0 ? <View style={styles.mainView}>
                 <Card customStyle={styles.wrapperStyle}
                 >
@@ -130,18 +153,20 @@ function CheckListScreen() {
                         style={styles.flatList}
                         ref={flatListRef}
                         keyExtractor={(item) => item.objectId}
-                        ItemSeparatorComponent={() => <View style={styles.separator}/>}
+                        ItemSeparatorComponent={() => <View style={styles.separator} />}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}
-                                                        colors={[colors.primary]}
-                                                        progressBackgroundColor={colors.surfaceContainerLowest}/>}
+                            colors={[colors.primary]}
+                            progressBackgroundColor={colors.surfaceContainerLowest} />}
                     />
                 </Card>
-            </View> : <EmptyData notFoundError={notFoundError}/>
+            </View> : <EmptyData notFoundError={notFoundError} />
 
             }
 
             <View style={styles.addNote}>
-                <Menu>
+                <CustomMenu items={menuItems} triggerIcon={triggerIcon} />
+
+                {/* <Menu>
                     <MenuTrigger>
                         <KhiyabunIcons name={"add-outline"} size={24} color={colors.primary}/>
                     </MenuTrigger>
@@ -164,16 +189,16 @@ function CheckListScreen() {
                             <Text style={styles.popUpOptionText}>{t("Public")}</Text>
                         </MenuOption>
                     </MenuOptions>
-                </Menu>
+                </Menu> */}
             </View>
             <AddCheckListSheet isVisible={isSheetVisible}
-                               onChangeCallback={getCheckLists}
-                               status={status}
-                               onClose={closeSheet}/>
+                onChangeCallback={getCheckLists}
+                status={status}
+                onClose={closeSheet} />
             <EditCheckListSheet isVisible={isEditSheetVisible}
-                                onChangeCallback={getCheckLists}
-                                item={targetCheckList}
-                                onClose={closeEditSheet}/>
+                onChangeCallback={getCheckLists}
+                item={targetCheckList}
+                onClose={closeEditSheet} />
         </>
     )
 }
@@ -243,7 +268,7 @@ const useThemedStyles = (colors) => {
         popUpOptionText: {
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: globalStyles.fontMain.fontFamily,
             color: colors.onSurfaceHigh
         },
 

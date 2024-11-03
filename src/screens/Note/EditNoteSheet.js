@@ -6,16 +6,8 @@ import Button from "../../components/Button";
 import React, {useState, useEffect} from "react";
 import Input from "../../components/Input";
 import AudioRecorder from "./AudioRecorder";
-import {CheckBox} from "@rneui/themed";
-import {putRequest} from "../../utils/sendRequest";
-// const editNote=async ()=>{
-//     const body = {
-//         title:header,
-//         isPrivate:true,
-//     }
-//     let res = await putRequest(`profile/active_team?teamId=${teamId}`,)
-//     console.log("activeTeam", res)
-// }
+import CustomText from "../../components/CustomText";
+
 
 const EditNoteSheet = ({isVisible, onClose, contentValue, headerValue, onChangeCallback, type, id}) => {
     const {t, i18n} = useTranslation();
@@ -29,9 +21,13 @@ const EditNoteSheet = ({isVisible, onClose, contentValue, headerValue, onChangeC
         setVal(contentValue);
         setTitleVal(headerValue);
     }, [contentValue, headerValue]);
+
+
     const getInputValue = (value) => {
         setVal(value)
     }
+
+
     const getTitleInputValue = (value) => {
         setTitleVal(value)
     }
@@ -40,6 +36,7 @@ const EditNoteSheet = ({isVisible, onClose, contentValue, headerValue, onChangeC
     const editTextNote = () => {
         onChangeCallback(titleVal, val, id)
     }
+
     const editVoiceNoteData = (uri, title) => {
         setVal(uri)
         setTitleVal(title)
@@ -54,7 +51,7 @@ const EditNoteSheet = ({isVisible, onClose, contentValue, headerValue, onChangeC
                onClose={onClose}
                snapPoint={500}>
             <View style={styles.sheetHeader}>
-                <Text style={styles.sheetHeaderText}>{t("Edit note")}</Text>
+                <CustomText lineHeight={16} weight={"bold"} color={colors.onSurface}>{t("Edit note")}</CustomText>
             </View>
             <View style={type === "VOICE" ? [styles.sheetBody, {height: 100}] : styles.sheetBody}>
                 {type === "TEXT" ?

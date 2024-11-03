@@ -1,263 +1,190 @@
-import React, {useState, useEffect} from "react";
-import {View, Text, StyleSheet, SectionList, TouchableOpacity, Dimensions, Pressable} from "react-native";
+import React, {memo, useEffect, useState} from "react";
+import {View, StyleSheet, SectionList, TouchableOpacity, ActivityIndicator, Platform} from "react-native";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
-import {useTheme} from "@react-navigation/native";
+import {useNavigation, useTheme, useIsFocused} from "@react-navigation/native";
 import {CheckBox} from "@rneui/themed";
+import {getRequest, putRequest} from "../../utils/sendRequest";
+import {useSelector} from "react-redux";
+import CustomText from "../../components/CustomText";
 import {useTranslation} from "react-i18next";
+import EmptyData from "../../components/EmptyData";
+import CustomToast from "../../components/CustomToast";
+import useWebBackButtonHandler from "../../navigation/hardwareBackHandler";
 
-const DATA = [
-    {
-        "date": "2024-07-04",
-        "data": [
-            {
-                title: "Call Mr Habibi",
-                checked: false,
-                id: 12
-
-            },
-            {
-                title: "Go to the gym",
-                checked: false,
-                id: 11
-            },
-            {
-                title: "Call Mr Shahbazi",
-                checked: true,
-                id: 10
-            },
-        ],
-    },
-    {
-        "date": "2024-07-03",
-        "data": [
-            {
-                title: "Call Mr Shahbazi",
-                checked: true,
-                id: 8
-            },
-            {
-                title: "Go to the gym",
-                checked: true,
-                id: 9
-            },
-        ],
-    },
-    {
-        "date": "2024-07-02",
-        "data": [
-            {
-                title: "Call Mr Shahbazi",
-                checked: true,
-                id: 7
-            },
-            {
-                title: "Go to the gym",
-                checked: true,
-                id: 6
-            },
-        ],
-    },
-    {
-        "date": "2024-07-01",
-        "data": [
-            {
-                title: "Call Mr Habibi",
-                checked: false,
-                id: 1
-            },
-            {
-                title: "Call Mr Shahbazi",
-                checked: true,
-                id: 2
-            },
-            {
-                title: "Call Mr Shahbazi",
-                checked: true,
-                id: 3
-            },
-            {
-                title: "Call Mr Shahbazi",
-                checked: true,
-                id: 4
-            },
-            {
-                title: "Go to the gym",
-                checked: true,
-                id: 5
-            },
-        ],
-    },
-];
-
-const CheckList = () => {
-    const {t} = useTranslation();
-    const [selectedItems, setSelectedItems] = useState({});
-    const styles = useThemedStyles();
+const CheckList = memo(() => {
+    const userToken = useSelector(state => state.login.token);
     const {colors} = useTheme();
+    const {t} = useTranslation();
+    const [isLoading, setIsLoading] = useState(false);
+    const [data, setData] = useState([]);
+    const styles = useThemedStyles();
+    const navigation = useNavigation();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
-        let initialSelectedItems = {};
-        DATA.forEach(section => {
-            section.data.forEach(item => {
-                initialSelectedItems[item.id] = item.checked;
-            });
-        });
-        setSelectedItems(initialSelectedItems);
-    }, []);
-    const renderItem = ({item}) => (
-        <Pressable
-            style={styles.wrapper}
-            onPress={() => {
-                setSelectedItems({
-                    ...selectedItems,
-                    [item.id]: !selectedItems[item.id]
-                });
-            }}
-        >
-            <CheckBox
-                checked={selectedItems[item.id]}
-                checkedIcon={
-                    <KhiyabunIcons name={'tick-circle-outline'} size={20} color={colors.primary}/>
-                }
-                uncheckedIcon={
-                    <KhiyabunIcons name={'circle-outline'} size={20} color={colors.onSurface}/>
-                }
-                containerStyle={styles.checkBox}
-            />
-            <View style={[styles.textWrapper, selectedItems[item.id] ? {opacity: 0.4} : ""]}>
-                <Text style={styles.title} numberOfLines={1}>
-                    {item.title}
-                </Text>
-            </View>
-        </Pressable>
+        if (isFocused) {
+            getCheckLists();
+        }
+    }, [isFocused]);
+
+    const getCheckLists = async () => {
+        setIsLoading(true);
+        try {
+            const res = await getRequest("checklists/today", {}, userToken);
+            if (res.statusCode === 200) {
+                const sections = res.data.map(item => ({
+                    checklistId: item.id,
+                    title: item.title,
+                    data: item.items,
+                }));
+                setData(sections);
+            }
+        } catch (error) {
+            console.error("Failed to fetch today checklists", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCheckboxChange = async (checklistId, itemId, currentStatus) => {
+        try {
+            const res = await putRequest(`checklists/mark?checklistId=${checklistId}&itemId=${itemId}&isDone=${!currentStatus}`, {}, userToken);
+            if (res.statusCode === 200) {
+                setData(prevData =>
+                    prevData.map(section => ({
+                        ...section,
+                        data: section.data.map(item =>
+                            item.id === itemId ? {...item, done: !currentStatus} : item
+                        )
+                    }))
+                );
+                CustomToast.show(res.message, "confirm", "top", 3000);
+            } else {
+                CustomToast.show(res.message, "error");
+            }
+        } catch (error) {
+            console.error("Failed to mark the checkbox", error);
+        }
+    };
+
+    const renderItem = ({item, section}) => (
+        <CheckBox
+            checked={item.done}
+            onPress={() => handleCheckboxChange(section.checklistId, item.id, item.done)}
+            checkedIcon={<KhiyabunIcons name={'tick-circle-outline'} size={20} color={colors.primary}/>}
+            uncheckedIcon={<KhiyabunIcons name={'circle-outline'} size={20} color={colors.onSurface}/>}
+            containerStyle={styles.checkBox}
+            title={<View style={item.done ? {opacity: 0.4} : {}}>
+                <CustomText
+                    size={16}
+                    color={colors.onSurfaceHigh}
+                    lineHeight={24}
+                    textAlign={'left'}
+                    customStyle={{
+                        paddingHorizontal: 6,
+                        textDecorationLine: item.done ? 'line-through' : 'none'
+                    }}
+                >
+                    {item.text}
+                </CustomText>
+            </View>}
+        />
     );
 
     return (
         <View style={styles.container}>
-
             <View style={styles.header}>
                 <View style={styles.headerTextWrapper}>
-                    <KhiyabunIcons name="tick-circle-bold" size={18} color={colors.primary}/>
-                    <Text style={styles.headerText}>{t("today_checklist")}</Text>
+                    <KhiyabunIcons name="tick-circle-bold" size={18} color={colors.primary}
+                                   style={{marginBottom: 3.5}}/>
+                    <CustomText
+                        size={16} color={colors.onSurface} weight={'bold'} lineHeight={24}
+                        textAlign={'left'} customStyle={{marginBottom: 2}}>
+                        {t('my_check_list')}
+                    </CustomText>
                 </View>
-                <TouchableOpacity activeOpacity={0.6} style={styles.headerTextWrapper}>
-                    <Text style={styles.seeMoreText}>{t("add")}</Text>
-                    <KhiyabunIcons name={"add-outline"} size={18} color={colors.darkPrimary}/>
+                <TouchableOpacity onPress={() => {
+                    navigation.navigate("CheckList");
+                    if (Platform.OS !== 'android') window.history.pushState({}, 'CheckList');
+                }} activeOpacity={0.6}
+                                  style={styles.headerTextWrapper}>
+                    <CustomText
+                        size={14} color={colors.darkPrimary} weight={'bold'} lineHeight={24}
+                        customStyle={{marginBottom: 3.5}}>
+                        {t('add')}
+                    </CustomText>
+                    <KhiyabunIcons name={"add-outline"} size={18} color={colors.darkPrimary}
+                                   style={{marginBottom: 3.5}}/>
                 </TouchableOpacity>
             </View>
-            {DATA.length !== 0 ?
+            {isLoading ? (
+                <ActivityIndicator size="large" color={colors.primary} style={{flex: 1}}/>
+            ) : data.length ? (
                 <SectionList
-                    sections={DATA}
-                    keyExtractor={(item, index) => item.title + index}
+                    sections={data}
+                    keyExtractor={(item, index) => item.id + index}
                     renderItem={renderItem}
-                    // renderSectionHeader={({section: {date}}) => (
-                    //     <View style={styles.dateContainer}>
-                    //         <View style={styles.dateSeparator}></View>
-                    //         <Text style={styles.dateText}>{date}</Text>
-                    //         <View style={styles.dateSeparator}></View>
-                    //     </View>
-                    // )}
-                /> :
-                <View style={styles.emptyChecklist}>
-                    <Text style={styles.emptyChecklistText}>{t("empty_checklist")}</Text>
-                </View>
-            }
+                    renderSectionHeader={({section: {title}}) => (
+                        <CustomText
+                            size={15} color={colors.onSurface} weight={'bold'} lineHeight={24}
+                            textAlign={'left'}
+                            customStyle={{paddingTop: 10}}>
+                            {title}
+                        </CustomText>
+                    )}
+                    renderSectionFooter={() => (
+                        <View style={{
+                            borderBottomWidth: 1,
+                            borderColor: colors.outlineSurface,
+                            marginBottom: 8
+                        }}></View>
+                    )}
+                />
+            ) : (
+                <EmptyData fullPage={false} hasSearch={false}
+                           customStyle={{flex: 1, alignSelf: "center"}}/>
+            )}
         </View>
-    )
-};
+    );
+});
 
 const useThemedStyles = () => {
     const {colors} = useTheme();
 
     return StyleSheet.create({
         container: {
+            flex: 1,
+            paddingHorizontal: 16,
+            paddingBottom: 8,
             marginTop: 8,
-            marginHorizontal: 8,
+            marginBottom: 8,
+            borderRadius: 6,
+            marginHorizontal: 6,
             flexDirection: "column",
-            backgroundColor: colors.surfaceContainerLowest,
-            padding: 16,
-            borderRadius: 8,
-        },
-        emptyChecklist: {
-            alignItems: "center",
-            padding: 20,
-        },
-        emptyChecklistText: {
-            fontFamily: "dana-regular",
-            color: colors.onSurface,
-            fontSize: 16,
-            fontWeight: "400",
-            lineHeight: 24,
-        },
-        wrapper: {
-            flexDirection: "row",
-            alignItems: 'center',
-            padding: 16,
+            backgroundColor: colors.surfaceContainerLowest
         },
         header: {
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
+            paddingTop: 16,
+            paddingBottom: 10,
+            borderBottomWidth: 1,
+            borderColor: colors.outlineSurface
         },
         headerTextWrapper: {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            gap: 8,
-        },
-        headerText: {
-            fontFamily: "dana-bold",
-            color: colors.onSurface,
-            fontSize: 16,
-            fontWeight: "700",
-            lineHeight: 24,
-            marginBottom: 2
-        },
-        seeMoreText: {
-            fontFamily: "dana-bold",
-            color: colors.darkPrimary,
-            fontSize: 14,
-            fontWeight: "500",
-            lineHeight: 20,
-            marginBottom: 3.5
-        },
-        dateContainer: {
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-        },
-        dateSeparator: {
-            height: 1,
-            width: (Dimensions.get('window').width),
-            backgroundColor: colors.outlineSurface,
-        },
-        dateText: {
-            paddingHorizontal: 20,
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceContainer,
-            fontSize: 12,
-            fontWeight: "400",
-            lineHeight: 16,
+            gap: 4,
+
         },
         checkBox: {
-            marginTop: 0,
-            marginBottom: 0,
-            marginLeft: 0,
             paddingLeft: 0,
             paddingRight: 0,
-            paddingTop: 0,
-            paddingBottom: 0,
+            padding: 3,
             color: colors.onSurface,
             backgroundColor: colors.surfaceContainerLowest,
-        },
-        title: {
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceHigh,
-            fontSize: 16,
-            fontWeight: "400",
-            lineHeight: 24,
-            letterSpacing: 0.02,
-            textAlign: "left",
         },
     });
 };

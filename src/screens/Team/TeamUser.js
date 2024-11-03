@@ -1,18 +1,19 @@
 import {I18nManager, Image, Pressable, StyleSheet, Text, View} from "react-native";
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import React, {useEffect, useState} from "react";
-import avatar from "../../../assets/img/3d_avatar_21.png";
-import {Menu, MenuOption, MenuOptions, MenuTrigger} from "react-native-popup-menu";
-import KhiyabunIcons from "../../components/KhiyabunIcons";
+import React, {useState} from "react";
 import {deleteRequest, putRequest} from "../../utils/sendRequest";
 import gStyles from "../../global-styles/GlobalStyles";
 import CustomModal from "../../components/CustomModal";
 import {errorHandling} from "../../utils/errorHandling";
+import Chips from "../../components/Chips";
+import {useSelector} from "react-redux";
+import CustomMenu from "../../components/customMenu";
 
 
 function TeamUser({item, onDeleteCallBack}) {
     const {t, i18n} = useTranslation();
+    const userToken = useSelector(state => state.login.token);
     const {colors} = useTheme();
     const isRTL = I18nManager.isRTL;
     const styles = useThemedStyles(colors, isRTL)
@@ -23,7 +24,7 @@ function TeamUser({item, onDeleteCallBack}) {
 
     const leaveTeam = async () => {
         try {
-            let res = await deleteRequest(`teams?id=${item.id}`)
+            let res = await deleteRequest(`teams?id=${item.id}`, {}, userToken)
             console.log("teamDeleted", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -37,10 +38,29 @@ function TeamUser({item, onDeleteCallBack}) {
         onDeleteCallBack()
     }
 
+    const menuItems = [
+        {
+            text: "set_as_active",
+            onSelect: toggleActiveModal,
+            icon: "info-circle-outline"
+        },
+        {
+            text: "team_info",
+            onSelect: () => console.log("TeamList Info"),
+            icon: "info-circle-outline"
+        },
+        {
+            text: "leave_team",
+            onSelect: toggleDeleteModal,
+            icon: "trash-outline"
+        },
+    ];
+
+
     const setActiveTeam = async (selectedTeamId) => {
         try {
             console.log("id", selectedTeamId)
-            let res = await putRequest(`profile/active_team?teamId=${selectedTeamId}`,)
+            let res = await putRequest(`profile/active_team?teamId=${selectedTeamId}`, {}, userToken)
             console.log("activeTeam", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -99,30 +119,13 @@ function TeamUser({item, onDeleteCallBack}) {
                         </Text>
                     </View>
                 </View>
-                <Menu>
-                    <MenuTrigger>
-                        <KhiyabunIcons name={"more-bold"} size={20} color={colors.onSurface}/>
-                    </MenuTrigger>
-                    <MenuOptions optionsContainerStyle={styles.popUp}>
-                        <MenuOption style={styles.popUpOption} onSelect={toggleActiveModal}>
-                            <KhiyabunIcons name={"info-circle-outline"} size={20} color={colors.onSurfaceHigh}/>
-                            <Text style={styles.popUpOptionText}>{t("set_as_active")}</Text>
-                        </MenuOption>
-                        <MenuOption style={styles.popUpOption}
-                                    onSelect={() => console.log("item")}>
-                            <KhiyabunIcons name={"info-circle-outline"} size={20} color={colors.onSurfaceHigh}/>
-                            <Text style={styles.popUpOptionText}>{t("team_info")}</Text>
-                        </MenuOption>
-                        <MenuOption
-                            style={styles.popUpOption}
-                            onSelect={toggleDeleteModal}>
-                            <KhiyabunIcons name={"trash-outline"}
-                                           size={20}
-                                           color={colors.onSurfaceHigh}/>
-                            <Text style={styles.popUpOptionText}>{t("leave_team")}</Text>
-                        </MenuOption>
-                    </MenuOptions>
-                </Menu>
+                {
+                    item.activeTeam && (
+                        <Chips type={"confirm"} text={t("active_team_chips")} width={80}/>
+                    )
+                }
+                <CustomMenu items={menuItems} />
+
             </Pressable>
             <CustomModal type={"warning"}
                          isVisible={isLeaveModalVisible}
@@ -179,7 +182,7 @@ const useThemedStyles = (colors, isRTl) => {
             color: colors.onSurfaceHigh
         },
         contactShortName: {
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             fontSize: 18,
             color: colors.surfaceContainerLowest,
             marginTop: 4
@@ -192,7 +195,7 @@ const useThemedStyles = (colors, isRTl) => {
         username: {
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.onSurface
 
         },
@@ -204,7 +207,7 @@ const useThemedStyles = (colors, isRTl) => {
         },
         unBlock: {
             color: colors.darkPrimary,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             fontSize: 14,
             lineHeight: 20
         },
@@ -214,9 +217,23 @@ const useThemedStyles = (colors, isRTl) => {
             borderRadius: 50,
             overflow: "hidden",
         },
+        popUpRTl: {
+            borderRadius: 8,
+            backgroundColor: colors.surfaceContainerLowest,
+            position: "relative",
+            left: 0,
+            marginLeft: 155,
+            paddingRight: 20,
+            width: 220
+        },
         popUp: {
             borderRadius: 8,
             backgroundColor: colors.surfaceContainerLowest,
+            position: "relative",
+            left: 0,
+            marginLeft: 155,
+            paddingRight: 20,
+            width: 220
         },
         popUpOption: {
             flexDirection: "row",
@@ -228,12 +245,10 @@ const useThemedStyles = (colors, isRTl) => {
             paddingHorizontal: 12
 
         },
-
         popUpOptionText: {
             fontSize: 16,
             lineHeight: 24,
-
-            fontFamily: 'dana-regular',
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.onSurfaceHigh
         },
     });

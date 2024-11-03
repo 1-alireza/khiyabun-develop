@@ -1,102 +1,141 @@
-import {useTranslation} from "react-i18next";
+import React, {useState} from "react";
+import {Dimensions, Pressable, StyleSheet, View} from "react-native";
 import {useTheme} from "@react-navigation/native";
-import {Dimensions, Pressable, StyleSheet, Text, View} from "react-native";
+import {CheckBox} from '@rneui/themed';
+import KhiyabunIcons from "../../components/KhiyabunIcons";
 import Sheet from "../../components/Sheet";
 import Button from "../../components/Button";
-import {CheckBox} from '@rneui/themed';
-import React, {useState} from "react";
-import KhiyabunIcons from "../../components/KhiyabunIcons";
 import CustomDropdown from "../../components/CustomDropdown";
+import CustomText from "../../components/CustomText";
+import {useSelector} from "react-redux";
+import {useTranslation} from "react-i18next";
 
-const restTypes = [
-    {label: 'I am taking a nap', value: '1'},
-    {label: 'I am praying', value: '2'},
-    {label: 'I am having lunch', value: '3'},
-    {label: 'I am smoking', value: '4'},
-    {label: 'i am on phone', value: '5'},
-];
+const enOptions = {
+    restTypes: [
+        {label: 'I am taking a nap', value: 'I am taking a nap'},
+        {label: 'I am praying', value: 'I am praying'},
+        {label: 'I am having lunch', value: 'I am having lunch'},
+        {label: 'I am smoking', value: 'I am smoking'},
+        {label: 'I am on the phone', value: 'I am on the phone'},
+    ],
+    options: [
+        'I answer the call',
+        'Send me SMS',
+        'Send me email',
+        'Send me message on WhatsApp',
+        'Send me message on Telegram',
+    ],
+};
+const faOptions = {
+    restTypes: [
+        {label: 'من در حال خواب هستم', value: 'من در حال خواب هستم'},
+        {label: 'در حال نماز خواندن هستم', value: 'در حال نماز خواندن هستم'},
+        {label: 'من در حال ناهارخوردن هستم', value: 'من در حال ناهارخوردن هستم'},
+        {label: 'من در حال سیگار کشیدن هستم', value: 'من در حال سیگار کشیدن هستم'},
+        {label: 'من در حال صحبت با تلفن هستم', value: 'من در حال صحبت با تلفن هستم'},
+    ],
+    options: [
+        'من به تماس پاسخ می‌دهم',
+        'به من پیامک ارسال کنید',
+        'به من ایمیل ارسال کنید',
+        'به من در واتس‌اپ پیام ارسال کنید',
+        'به من در تلگرام پیام ارسال کنید',
+    ],
+};
 
-const options = [
-    'I answer the call',
-    'Send me SMS',
-    'Send me email',
-    'Send me message on WhatsApp',
-    'Send me message on Telegram',
-];
-
-
-const ContactMeSheet = ({isVisible, onConfirm, onCancel}) => {
+const ContactMeSheet = ({
+                            isVisible,
+                            setSelectedDropdown,
+                            selectedCheckbox,
+                            setSelectedCheckbox,
+                            onConfirm,
+                            onCancel,
+                        }) => {
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
-    const [selectedOption, setSelectedOption] = useState(null);
-    const [restType, setRestType] = useState("i am taking a nap");
+    const lang = useSelector(state => state.language.language);
+    const [data, setData] = useState(lang === "fa" ? faOptions : enOptions);
+    const {t} = useTranslation();
+    const handleSelectedDropdownOption = (type) => {
+        setSelectedDropdown(type);
+    };
 
-    const handleSelectOption = (option) => {
-        if (selectedOption === option) {
-            setSelectedOption(null); // Uncheck if already checked
+    const handleSelectedCheckboxOption = (option) => {
+        if (selectedCheckbox === option) {
+            setSelectedCheckbox(null);
         } else {
-            setSelectedOption(option); // Check if not checked
+            setSelectedCheckbox(option);
         }
     };
 
-    const selectRestType = (type) => {
-        setRestType(type);
-    };
-
     const resetSelection = () => {
-        setSelectedOption(null); // Uncheck all options
+        setSelectedCheckbox(null);
+        setSelectedDropdown(null);
     };
 
     return (
         <Sheet isOpen={isVisible} fitContent={true} onClose={onCancel} snapPoint={500}>
-            <Text style={styles.sheetHeaderText}>Contact me</Text>
+            <CustomText
+                size={15} weight={'bold'} color={colors.onSurface} lineHeight={24}>
+                {t('contact_me')}
+            </CustomText>
+
             <CustomDropdown
-                placeHolder="i am taking a nap"
-                data={restTypes}
-                callBackFunction={selectRestType}
-                defaultValue={restType}
+                placeHolder={t('select_rest_type')}
+                data={data.restTypes}
+                callBackFunction={handleSelectedDropdownOption}
+                defaultValue={null}
             />
             <View style={styles.optionsWrapper}>
-                {options.map((option, index) => (
-                    <Pressable key={option} onPress={() => handleSelectOption(option)}>
+                {data.options.map((option, index) => (
+                    <View key={option}>
                         <View style={styles.optionWrapper}>
                             <CheckBox
-                                checkedIcon={<KhiyabunIcons name="tick-circle-bold" size={20} color={colors.primary}/>}
-                                uncheckedIcon={<KhiyabunIcons name="circle-outline" size={20}
-                                                              color={colors.onSurface}/>}
+                                checkedIcon={<KhiyabunIcons name={'tick-circle-outline'} size={20} color={colors.primary}/>}
+                                uncheckedIcon={<KhiyabunIcons name={'circle-outline'} size={20} color={colors.onSurface}/>}
                                 containerStyle={styles.checkBox}
-                                checked={selectedOption === option}
+                                checked={selectedCheckbox === option}
+                                onPress={() => handleSelectedCheckboxOption(option)}
+                                title={<View>
+                                    <CustomText
+                                        size={15}
+                                        color={colors.onSurfaceHigh}
+                                        lineHeight={24}
+                                        textAlign={'left'}
+                                        customStyle={{
+                                            paddingHorizontal: 6,
+                                        }}
+                                    >
+                                        {option}
+                                    </CustomText>
+                                </View>}
                             />
-                            <Text style={styles.optionText}>{option}</Text>
                         </View>
-                        {index < options.length - 1 && <View style={styles.separator}/>}
-                    </Pressable>
+                        {index < data.options.length - 1 && <View style={styles.separator}/>}
+                    </View>
                 ))}
             </View>
 
             <View style={styles.sheetButtons}>
                 <Button
-                    label="Confirm"
+                    label={t('confirm')}
                     sizeButton="medium"
                     style={styles.confirmButton}
                     styleText={styles.confirmButtonText}
                     width={60}
-                    onPress={() => {
-                        onConfirm(selectedOption)
-                        resetSelection(); // Uncheck all options when canceling
-                    }}
+                    onPress={onConfirm}
                     isBorder={true}
                     borderColor={colors.primaryOutline}
                 />
                 <Button
-                    label="Cancel"
+                    label={t('cancel')}
                     sizeButton="small"
                     style={styles.cancelButton}
                     width={40}
                     styleText={styles.cancelButtonText}
                     onPress={() => {
                         onCancel();
-                        resetSelection(); // Uncheck all options when canceling
+                        resetSelection();
                     }}
                 />
             </View>
@@ -105,13 +144,6 @@ const ContactMeSheet = ({isVisible, onConfirm, onCancel}) => {
 };
 const useThemedStyles = (colors) => {
     return StyleSheet.create({
-        sheetHeaderText: {
-            fontFamily: "dana-bold",
-            fontWeight: "700",
-            fontSize: 16,
-            lineHeight: 24,
-            color: colors.onSurface
-        },
         optionsWrapper: {
             marginBottom: 16,
         },
@@ -120,15 +152,6 @@ const useThemedStyles = (colors) => {
             alignItems: "center",
             paddingVertical: 6,
             width: Dimensions.get('window').width - 50
-
-        },
-        optionText: {
-            fontFamily: "dana-regular",
-            color: colors.onSurfaceHigh,
-            fontSize: 16,
-            fontWeight: "400",
-            lineHeight: 24,
-            textAlign: "left",
         },
         checkBox: {
             marginTop: 0,
@@ -138,6 +161,8 @@ const useThemedStyles = (colors) => {
             paddingRight: 0,
             paddingTop: 0,
             paddingBottom: 0,
+            color: colors.onSurface,
+            backgroundColor: colors.surfaceContainerLowest,
         },
         sheetButtons: {
             flexDirection: "row",
@@ -145,7 +170,6 @@ const useThemedStyles = (colors) => {
             alignItems: "center",
             width: "100%",
         },
-
         confirmButton: {
             borderRadius: 8,
             backgroundColor: colors.primaryContainer,
@@ -154,10 +178,8 @@ const useThemedStyles = (colors) => {
             width: Dimensions.get('window').width / 2 - 35,
         },
         confirmButtonText: {
-            fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-bold",
             color: colors.darkPrimary
         },
         cancelButton: {
@@ -168,13 +190,10 @@ const useThemedStyles = (colors) => {
             width: Dimensions.get('window').width / 2 - 35,
         },
         cancelButtonText: {
-            fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-bold",
             color: colors.darkPrimary
         },
-
         separator: {
             height: 1,
             backgroundColor: colors.outlineSurface,
@@ -183,6 +202,5 @@ const useThemedStyles = (colors) => {
 
     });
 };
-
 
 export default ContactMeSheet;

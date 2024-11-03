@@ -9,11 +9,11 @@ import {useTheme} from "@react-navigation/native";
 import {changeLanguageState} from "../redux/slices/languageSlice";
 import Sheet from "./Sheet";
 import {LANGUAGE_KEY} from "../utils/constant";
-
 import gStyles from "../global-styles/GlobalStyles";
-import globalStyles from "../global-styles/GlobalStyles";
+import CustomText from "./CustomText";
 
-const LanguageSwitcher = ({isVisible,onClose}) => {
+
+const LanguageSwitcher = ({isVisible, onClose}) => {
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
     const dispatch = useDispatch();
@@ -34,25 +34,26 @@ const LanguageSwitcher = ({isVisible,onClose}) => {
     };
 
     return (
-        <Sheet isOpen={isVisible}  fitContent={true} onClose={onClose} modalHeight={230} snapPoint={500}>
+        <Sheet isOpen={isVisible} fitContent={true} onClose={onClose} modalHeight={230} snapPoint={500}>
             <View style={styles.sheetHeader}>
-                <Text style={styles.sheetHeaderText}>{t("language")}</Text>
+                <CustomText lineHeight={16} weight={"bold"} color={colors.onSurface}>{t("language")}</CustomText>
             </View>
             <View style={styles.modalBody}>
                 <Pressable style={[language === "en" ? styles.activeLanguage : styles.languageButton]}
                            onPress={() => changeLanguage("en")}>
-                    <Text
-                        style={[language === "en" ? styles.activeLanguageButtonText : styles.languageButtonText]}>English</Text>
+                    <CustomText lineHeight={24} size={16}
+                                color={language === "en" ? colors.textOn : colors.darkPrimary}>English</CustomText>
+
                 </Pressable>
                 <Pressable style={[language === "fa" ? styles.activeLanguage : styles.languageButton]}
                            onPress={() => changeLanguage("fa")}>
-                    <Text
-                        style={[language === "fa" ? styles.activeLanguageButtonText : styles.languageButtonText]}>فارسی</Text>
+                    <CustomText lineHeight={24} size={16}
+                                color={language === "fa" ? colors.textOn : colors.darkPrimary}>فارسی</CustomText>
                 </Pressable>
                 <Pressable style={[language === "ar" ? styles.activeLanguage : styles.languageButton]}
                            onPress={() => changeLanguage("ar")}>
-                    <Text
-                        style={[language === "ar" ? styles.activeLanguageButtonText : styles.languageButtonText]}>العربیه</Text>
+                    <CustomText lineHeight={24} size={16}
+                                color={language === "ar" ? colors.textOn : colors.darkPrimary}>العربیه</CustomText>
                 </Pressable>
             </View>
         </Sheet>
@@ -68,8 +69,8 @@ const useThemedStyles = (colors) => {
             gap: 8
 
         },
-        test:{
-            padding:0
+        test: {
+            padding: 0
         },
         languageButton: {
             borderRadius: 8,
@@ -83,7 +84,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily:gStyles.fontMain.fontFamily,
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         activeLanguage: {
@@ -98,7 +99,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily:gStyles.fontMain.fontFamily,
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.textOn
 
         },
@@ -108,15 +109,15 @@ const useThemedStyles = (colors) => {
         sheetHeader: {
             backgroundColor: colors.surfaceContainerLowest,
             marginHorizontal: 16,
-            marginBottom:12,
+            marginBottom: 12,
             justifyContent: "center",
             alignItems: "center"
         },
         sheetHeaderText: {
             paddingHorizontal: 16,
-            color:colors.onSurface,
-            fontFamily:gStyles.fontBold.fontFamily,
-            lineHeight:24
+            color: colors.onSurface,
+            fontFamily: gStyles.fontBold.fontFamily,
+            lineHeight: 24
         },
 
 

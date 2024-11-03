@@ -1,15 +1,15 @@
 import React, {useState} from 'react';
-import {View, Text, Pressable, StyleSheet, Dimensions} from 'react-native';
+import {View, Pressable, StyleSheet, Dimensions} from 'react-native';
 import {useTheme} from "@react-navigation/native";
 import {useSelector} from "react-redux";
-import gStyles from "../../global-styles/GlobalStyles";
+import CustomText from "../../components/CustomText";
 
 const Calendar = () => {
     const lang = useSelector(state => state.language.language);
     const styles = useThemedStyles();
     const [activeDay, setActiveDay] = useState(3);
     const [hasUnread, setHasUnread] = useState(5);
-
+    const {colors} = useTheme();
     const handleDayPress = (index) => {
         setActiveDay(index);
     };
@@ -60,7 +60,8 @@ const Calendar = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.labelText}>{month} {year}</Text>
+
+            <CustomText size={19} color={colors.onSurface} weight={'bold'} lineHeight={30}>{month} {year}</CustomText>
 
             <View style={{flexDirection: 'row'}}>
                 {dates.map((date, i) => (
@@ -69,9 +70,16 @@ const Calendar = () => {
                         key={i}
                         onPress={() => handleDayPress(i)}
                     >
-                        <Text style={[styles.weekDayText, activeDay === i && styles.activeDayText]}>{date.day}</Text>
-                        <Text style={[styles.weekDayNum, activeDay === i && styles.activeDayText]}>{date.date}</Text>
-                        {/*<Text style={[styles.todayBadge, hasUnread === i && styles.activeDayBadge]}></Text>*/}
+                        <CustomText
+                            size={10} color={colors.onSurfaceLowest} weight={'bold'} lineHeight={16}
+                            textAlign={'center'} customStyle={activeDay === i && styles.activeDayText}>
+                            {date.day}
+                        </CustomText>
+                        <CustomText size={20} color={colors.onSurface} lineHeight={30} letterSpacing={0.2}
+                                    customStyle={activeDay === i && styles.activeDayText}>
+                            {date.date}
+                        </CustomText>
+                        {/*<View style={[styles.todayBadge, hasUnread === i && styles.activeDayBadge]}></View>*/}
                     </Pressable>
                 ))}
             </View>
@@ -80,20 +88,12 @@ const Calendar = () => {
 };
 
 const useThemedStyles = () => {
-    const lang = useSelector(state => state.language.language);
     const {colors} = useTheme();
 
     return StyleSheet.create({
         container: {
             marginBottom: 20,
             marginTop: 10,
-        },
-        labelText: {
-            fontFamily: (lang === 'fa') ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
-            color: colors.onSurface,
-            fontSize: 20,
-            fontWeight: '500',
-            lineHeight: 30,
         },
         weekDaysWrapper: {
             width: (Dimensions.get('window').width - 58) / 7,
@@ -107,23 +107,6 @@ const useThemedStyles = () => {
             marginHorizontal: 2,
             borderRadius: 6,
         },
-        weekDayText: {
-            ...gStyles.fontBold,
-            color: colors.onSurfaceLowest,
-            fontSize: 10,
-            fontWeight: '500',
-            lineHeight: 16,
-            textAlign: 'center',
-        },
-        weekDayNum: {
-            fontFamily: (lang === 'fa') ? gStyles.danaPersianNumber.fontFamily : gStyles.fontMain.fontFamily,
-            color: colors.onSurface,
-            fontSize: 20,
-            fontWeight: '400',
-            lineHeight: 30,
-            letterSpacing: 0.02,
-            textAlign: 'center',
-        },
         todayBadge: {
             width: 6,
             height: 6,
@@ -134,15 +117,16 @@ const useThemedStyles = () => {
             alignContent: 'center',
             opacity: 0,
         },
+        activeDayBadge: {
+            opacity: 1,
+        },
         activeDay: {
             backgroundColor: colors.primary,
         },
         activeDayText: {
             color: colors.textOn,
         },
-        activeDayBadge: {
-            opacity: 1,
-        },
+
     });
 };
 

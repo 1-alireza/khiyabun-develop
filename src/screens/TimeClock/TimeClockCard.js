@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import {View, StyleSheet, Text, Pressable, Linking, Platform, PermissionsAndroid} from 'react-native';
+import {View, StyleSheet, Pressable, Linking, Platform, PermissionsAndroid, I18nManager} from 'react-native';
 import Card from "../../components/Card";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import {useTheme} from "@react-navigation/native";
@@ -8,6 +8,10 @@ import * as Location from "expo-location";
 import * as Network from 'expo-network';
 import CustomToast from "../../components/CustomToast";
 import {useTranslation} from "react-i18next";
+import CustomText from "../../components/CustomText";
+import {postRequest} from "../../utils/sendRequest";
+import {useDispatch, useSelector} from "react-redux";
+import {setWorkLogData} from "../../redux/slices/workLogSlice";
 
 // import {NetworkInfo} from 'react-native-network-info';
 // import * as IntentLauncher from 'expo-intent-launcher';
@@ -15,11 +19,16 @@ import {useTranslation} from "react-i18next";
 // import WifiManager from 'react-native-wifi-reborn';
 // import {log} from "expo/build/devtools/logger";
 
-function TimeClockCard({setEnteredOffice, onPress}) {
+function TimeClockCard({officeData, setEnteredOffice, setEnteredOfficeData, onPress}) {
     const {t} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles();
-    const [enteringOffice, setEnteringOffice] = useState(false);
+    const userToken = useSelector(state => state.login.token);
+
+    const [startEntering, setStartEntering] = useState(false);
+    const [enteredTo, setEnterTo] = useState(false);
+
+    const [hasWifiVerification, setHasWifiVerification] = useState(false);
 
     const [isLocationOn, setIsLocationOn] = useState(null);
     const [isWifiOn, setIsWifiOn] = useState(null);
@@ -27,41 +36,96 @@ function TimeClockCard({setEnteredOffice, onPress}) {
     const [isLocationConfirmed, setIsLocationConfirmed] = useState(null);
     const [isWifiConfirmed, setIsWifiConfirmed] = useState(null);
 
-    const [officeData, setOfficeData] = useState([]);
+    const [userCoordination, setUserCoordination] = useState(null);
+    const [officeID, setOfficeID] = useState(null);
 
-    const RADIUS = 50;
+    const [wifiData, setWifiData] = useState(null);
+
     const TARGET_SSID = 'YourWiFiNetworkName';
+    const directionIcon = (I18nManager.isRTL) ? "direction-left-bold" : "direction-right-bold";
 
-    useEffect(() => {
-        async function fetchData() {
-            await setOfficeData([
-                {
-                    officeName: "kasbino",
-                    coordinate: {
-                        latitude: 35.72918128209974,
-                        longitude: 51.360396951983006,
-                    },
-                },
-            ]);
-        }
-
-        fetchData();
-        checkWifiStatus();
-    }, []);
-
-    useEffect(() => {
-        if (officeData.length > 0) {
-            turnOnLoc();
-        }
-    }, [officeData]);
-
-    useEffect(() => {
-        checkIfBothStatesTrue(); // Check whenever state1 or state2 changes
-    }, [isLocationConfirmed, isWifiConfirmed]);
+    const dispatch = useDispatch();
 
     function enterOffice() {
-        setEnteringOffice(true);
+        setStartEntering(true);
     }
+
+    const verifyLocation = async (officeId) => {
+        try {
+            const body = {
+                lat: userCoordination.latitude,
+                lon: userCoordination.longitude,
+                officeId: officeId,
+            }
+            console.log("verifyLocation body", body);
+            let res = await postRequest("work_log/check_location", body, userToken)
+            console.log("verifyLocation res", res);
+
+            if (res.statusCode === 200 && res.data.locationCheck === true) {
+                setIsLocationConfirmed(true);
+            } else {
+                setIsLocationConfirmed(false);
+            }
+        } catch (e) {
+            console.error("error verifyLocation", e);
+        }
+    };
+
+    const verifyWifi = async (officeId) => {
+        try {
+            const body = {
+                wifiId: "2A-5C-6F-7D",
+                officeId: officeId,
+            }
+            console.log("verifyWifi body", body);
+            let res = await postRequest("work_log/check_wifi", body, userToken)
+            console.log("verifyWifi res", res);
+
+            if (res.statusCode === 200 && res.data.wifiCheck === true) {
+                setIsWifiConfirmed(true);
+            } else {
+                setIsWifiConfirmed(false);
+            }
+        } catch (e) {
+            console.error("error verifyWifi!", e);
+        }
+    };
+
+    function retryLocationVerification() {
+        verifyLocation(officeID);
+    }
+
+    function retryWifiVerification() {
+        verifyWifi(officeID);
+    }
+
+    function enterTo(data) {
+        setEnterTo(true);
+        setOfficeID(data.officeId);
+        if (data.hasWifi) {
+            setHasWifiVerification(true);
+            verifyWifi(data.officeId);
+        }
+        verifyLocation(data.officeId);
+    }
+
+    function cancelEntering() {
+        setStartEntering(false);
+        setEnterTo(false);
+        clockIn();
+    }
+
+
+    useEffect(() => {
+        if (isLocationConfirmed && isWifiConfirmed) clockIn()
+
+    }, [isLocationConfirmed, isWifiConfirmed]);
+
+    useEffect(() => {
+        checkWifiStatus();
+        turnOnLoc()
+    }, []);
+
 
     async function turnOnLoc() {
         try {
@@ -79,58 +143,12 @@ function TimeClockCard({setEnteredOffice, onPress}) {
             }
             if (location) {
                 setIsLocationOn(true);
-                confirmLocation(location.coords);
+                setUserCoordination(location.coords)
             }
         } catch (error) {
             console.error('Error getting location:', error);
             setIsLocationOn(false);
         }
-    }
-
-    function confirmLocation(coords) {
-        console.log(coords);
-
-        const userCoord = {
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-        };
-
-        const officeCoord = officeData[0].coordinate;
-
-        const distance = calculateDistance(userCoord, officeCoord);
-
-
-        setTimeout(function () {
-            setIsLocationConfirmed(true);
-        }, 2000);  //test for now!
-
-        // if (distance <= RADIUS) {
-        //     console.log('You are in the circle!');
-        //     setIsLocationConfirmed(true);
-        // } else {
-        //     console.log("sorry!")
-        //     setIsLocationConfirmed(false);
-        // }
-    }
-
-    function calculateDistance(coord1, coord2) {
-        const earthRadius = 6371000; // Earth's radius in meters
-        const lat1 = toRadians(coord1.latitude);
-        const lat2 = toRadians(coord2.latitude);
-        const deltaLat = toRadians(coord2.latitude - coord1.latitude);
-        const deltaLon = toRadians(coord2.longitude - coord1.longitude);
-
-        const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1) * Math.cos(lat2) *
-            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-        const c = 2 * Math.atan2(
-            Math.sqrt(a), Math.sqrt(1 - a));
-
-        return earthRadius * c;
-    }
-
-    function toRadians(degrees) {
-        return degrees * (Math.PI / 180);
     }
 
     async function checkWifiStatus() {
@@ -155,6 +173,7 @@ function TimeClockCard({setEnteredOffice, onPress}) {
             console.log('networkState:', networkState);
             setTimeout(function () {
                 setIsWifiConfirmed(true);
+                setWifiData("aliWifi")
             }, 6000);  //test for now!
             // if (networkState && networkState.isConnected && networkState.type === Network.NetworkStateType.WIFI) {
             //     const ssid = networkState.details ? networkState.details.ssid : null;
@@ -181,13 +200,34 @@ function TimeClockCard({setEnteredOffice, onPress}) {
     };
 
 
-    const checkIfBothStatesTrue = () => {
-        if (enteringOffice && isLocationConfirmed && isWifiConfirmed) {
-            CustomToast.show(t("confirm_clock_in"), "confirm");
-            setTimeout(function () {
-                setEnteredOffice(true)
-            }, 1000);  //test for now!
+    const openWifiSetting = () => {
+        Linking.openSettings().catch(err => console.error('An error occurred', err));
+    };
 
+    const clockIn = async () => {
+        try {
+            const body = {
+                lat: userCoordination.latitude,
+                lon: userCoordination.longitude,
+                wifiId: "2A-5C-6F-7D",
+                officeId: officeID,
+            }
+            console.log("clock_in body", body)
+            let res = await postRequest("work_log/clock_in", body, userToken);
+            console.log("clock_in res", res.data);
+
+            if (res.statusCode === 201) {
+                CustomToast.show(t("confirm_clock_in"), "confirm");
+                setEnteredOffice(true);
+                setEnteredOfficeData({officeID});
+                dispatch(setWorkLogData(res.data));
+
+            } else {
+                CustomToast.show(t("reject_clock_in"), "error");
+                setEnteredOffice(false);
+            }
+        } catch (e) {
+            console.error("error clocking in!", e);
         }
     };
 
@@ -229,104 +269,185 @@ function TimeClockCard({setEnteredOffice, onPress}) {
     return (
         <Card customStyle={styles.container}>
 
-            {enteringOffice ?
+            {startEntering ?
                 <View style={styles.header}>
-                    <Text style={styles.headerText}>Confirm your entry</Text>
+                    <CustomText
+                        size={15} color={colors.onSurface} lineHeight={24}
+                        customStyle={{marginBottom: 5}}>
+                        {t("confirm_entry")}
+                    </CustomText>
+                    <Pressable onPress={cancelEntering}>
+                        <KhiyabunIcons name={'close-outline'} size={20} color={colors.onSurface}/>
+                    </Pressable>
                 </View>
                 :
                 <View style={styles.header}>
                     <View style={styles.headerTextWrapper}>
                         <KhiyabunIcons name="clock-outline" size={16} color={colors.onSurface}/>
-                        <Text style={styles.headerText}>Total work hours today</Text>
+                        <CustomText
+                            size={15} color={colors.onSurface} lineHeight={24}
+                            customStyle={{marginBottom: 5}}>
+                            {t("total_work_hours")}
+                        </CustomText>
                     </View>
                     <View style={styles.headerTextWrapper}>
-                        <Text style={styles.seeMoreText}>5:25</Text>
+                        <CustomText
+                            size={13} weight={'bold'} color={colors.darkPrimary} lineHeight={20}
+                            customStyle={{marginBottom: 3.5}}>
+                            5:25
+                        </CustomText>
                     </View>
                 </View>
             }
 
-            {enteringOffice ?
-                <>
-                    {isLocationOn ?
-                        <View style={styles.statusWrapper}>
-                            <KhiyabunIcons name={isLocationConfirmed === true ? "tick-circle-bold"
-                                : isLocationConfirmed === false ? "close-circle-bold"
-                                    : "loading-outline"} size={24}
-                                           color={isLocationConfirmed === true ? colors.darkConfirm
-                                               : isLocationConfirmed === false ? colors.error
-                                                   : colors.onSurface}/>
-                            <View style={styles.textWrapper}>
-                                <Text style={styles.subjectText}>Confirm location</Text>
-                                <Text
-                                    style={[styles.statusText, isLocationConfirmed === true ? {color: colors.darkConfirm}
-                                        : isLocationConfirmed === false ? {color: colors.error}
-                                            : {color: colors.onSurfaceLow}]}>
-                                    {isLocationConfirmed === true ? 'Your location was verified'
-                                        : isLocationConfirmed === false ? 'Your location was not verified'
-                                            : 'searching'}
-                                </Text>
-                            </View>
-                        </View>
-                        :
-                        <Button
-                            style={{marginVertical: 8}}
-                            onPress={turnOnLoc}
-                            label="Turn on location"
-                            sizeButton="medium"
-                            typeButton="full"
-                            styleText={styles.buttonTextStyle}
-                        />}
+            {startEntering ?
+                enteredTo ?
+                    <>
+                        {isLocationOn ?
+                            <View style={styles.statusWrapper}>
+                                <KhiyabunIcons name={isLocationConfirmed === true ? "tick-circle-bold"
+                                    : isLocationConfirmed === false ? "close-circle-bold"
+                                        : "loading-outline"} size={24}
+                                               color={isLocationConfirmed === true ? colors.darkConfirm
+                                                   : isLocationConfirmed === false ? colors.error
+                                                       : colors.onSurface}/>
+                                <View style={styles.textWrapper}>
+                                    <View>
+                                        <CustomText
+                                            size={15} color={colors.onSurfaceHigh} lineHeight={24}
+                                            textAlign={'left'} letterSpacing={0.02}>
+                                            {t("confirm_location")}
+                                        </CustomText>
+                                        <CustomText
+                                            size={12} color={isLocationConfirmed === true ? colors.darkConfirm
+                                            : isLocationConfirmed === false ? colors.error
+                                                : colors.onSurfaceLow} lineHeight={16}
+                                            textAlign={'left'}>
+                                            {isLocationConfirmed === true ? t("loc_verified")
+                                                : isLocationConfirmed === false ? t("loc_not_verified")
+                                                    : 'searching'}
+                                        </CustomText>
+                                    </View>
+                                    {!isLocationConfirmed &&
+                                        <Pressable onPress={retryLocationVerification}>
+                                            <KhiyabunIcons name={'revers-time-outline'} size={20}
+                                                           color={colors.onSurface}/>
+                                        </Pressable>
+                                    }
 
-                    {isWifiOn ?
-                        <View style={styles.statusWrapper}>
-                            <KhiyabunIcons name={isWifiConfirmed === true ? "tick-circle-bold"
-                                : isWifiConfirmed === false ? "close-circle-bold"
-                                    : "loading-outline"} size={24}
-                                           color={isWifiConfirmed === true ? colors.darkConfirm
-                                               : isWifiConfirmed === false ? colors.error
-                                                   : colors.onSurface}/>
-                            <View style={styles.textWrapper}>
-                                <Text style={styles.subjectText}>Confirm wifi</Text>
-                                <Text
-                                    style={[styles.statusText, isWifiConfirmed === true ? {color: colors.darkConfirm}
-                                        : isWifiConfirmed === false ? {color: colors.error}
-                                            : {color: colors.onSurfaceLow}]}>
-                                    {isWifiConfirmed === true ? 'Your wifi was verified'
-                                        : isWifiConfirmed === false ? 'Your wifi was not verified'
-                                            : 'searching'}
-                                </Text>
+                                </View>
+                            </View>
+                            :
+                            <Button
+                                style={{marginVertical: 8}}
+                                onPress={turnOnLoc}
+                                label="Turn on location"
+                                sizeButton="medium"
+                                typeButton="full"
+                                styleText={styles.buttonTextStyle}
+                            />}
+
+                        {hasWifiVerification ?
+                            isWifiOn ?
+                                <View style={styles.statusWrapper}>
+                                    <KhiyabunIcons name={isWifiConfirmed === true ? "tick-circle-bold"
+                                        : isWifiConfirmed === false ? "close-circle-bold"
+                                            : "loading-outline"} size={24}
+                                                   color={isWifiConfirmed === true ? colors.darkConfirm
+                                                       : isWifiConfirmed === false ? colors.error
+                                                           : colors.onSurface}/>
+                                    <View style={styles.textWrapper}>
+                                        <View>
+                                            <CustomText
+                                                size={15} color={colors.onSurfaceHigh} lineHeight={24}
+                                                textAlign={'left'}
+                                                letterSpacing={0.02}
+                                            >
+                                                {t("confirm_wifi")}
+                                            </CustomText>
+                                            <CustomText
+                                                size={12} color={isWifiConfirmed === true ? colors.darkConfirm
+                                                : isWifiConfirmed === false ? colors.error
+                                                    : colors.onSurfaceLow} lineHeight={16}
+                                                textAlign={'left'}>
+                                                {isWifiConfirmed === true ? t("wif_verified")
+                                                    : isWifiConfirmed === false ? t("wifi_not_verified")
+                                                        : 'searching'}
+                                            </CustomText>
+                                        </View>
+
+                                        {!isWifiConfirmed &&
+                                            <Pressable onPress={retryWifiVerification}>
+                                                <KhiyabunIcons name={'revers-time-outline'} size={20}
+                                                               color={colors.onSurface}/>
+                                            </Pressable>
+                                        }
+                                    </View>
+                                </View>
+                                :
+                                <Button
+                                    onPress={openWifiSetting}
+                                    label="Turn on wifi"
+                                    sizeButton="medium"
+                                    typeButton="full"
+                                    styleText={styles.buttonTextStyle}
+                                /> : <></>}
+                    </>
+                    :
+                    officeData.map((data) => (
+                        <View style={styles.enterToWrapper} key={data.officeId}>
+                            <KhiyabunIcons name={"buildings-bold"} size={24} color={colors.primary}/>
+                            <View style={styles.enteringWrapper}>
+                                <View style={{width: "70%"}}>
+                                    <CustomText
+                                        size={15} color={colors.onSurfaceHigh} lineHeight={24}
+                                        textAlign={'left'} letterSpacing={0.02}>
+                                        {t("enter_to")}
+                                    </CustomText>
+                                    <CustomText
+                                        size={13} color={colors.onSurfaceLow} lineHeight={16}
+                                        textAlign={'left'}>
+                                        {data.officeName}
+                                    </CustomText>
+                                </View>
+                                <Button
+                                    width={25}
+                                    onPress={() => enterTo(data)}
+                                    label={t("enter")}
+                                    sizeButton="small"
+                                    typeButton="full"
+                                    style={{paddingHorizontal: 0}}
+                                    styleText={styles.buttonTextStyle}
+                                />
                             </View>
                         </View>
-                        :
-                        <Button
-                            // onPress={openWifiSetting}
-                            label="Turn on wifi"
-                            sizeButton="medium"
-                            typeButton="full"
-                            styleText={styles.buttonTextStyle}
-                        />}
-                </>
+                    ))
                 :
                 <>
                     <Pressable onPress={enterOffice} style={styles.buttonWrapper}>
                         <View style={styles.leftWrapper}>
                             <KhiyabunIcons name="buildings-bold" size={24} color={colors.darkPrimary}/>
-                            <Text style={[styles.subjectText, {marginLeft: 6}]}>Entering the office</Text>
+                            <CustomText
+                                size={15} color={colors.onSurfaceHigh} lineHeight={24}
+                                customStyle={{marginLeft: 6}}>
+                                {t("entering_office")}
+                            </CustomText>
                         </View>
-                        <KhiyabunIcons name="direction-right-bold" size={24} color={colors.onSurface}/>
+                        <KhiyabunIcons name={directionIcon} size={24} color={colors.onSurface}/>
                     </Pressable>
-
                     <Pressable style={styles.buttonWrapper} onPress={onPress}>
                         <View style={styles.leftWrapper}>
                             <KhiyabunIcons name="car-bold" size={24} color={colors.darkPrimary}/>
-                            <Text style={[styles.subjectText, {marginLeft: 6}]}>Errand</Text>
+                            <CustomText
+                                size={15} color={colors.onSurfaceHigh} lineHeight={24}
+                                customStyle={{marginLeft: 6}}>
+                                {t("errand")}
+                            </CustomText>
                         </View>
-                        <KhiyabunIcons name="direction-right-bold" size={24} color={colors.onSurface}/>
+                        <KhiyabunIcons name={directionIcon} size={24} color={colors.onSurface}/>
                     </Pressable>
                 </>
             }
-
-
         </Card>
     );
 }
@@ -353,27 +474,10 @@ const useThemedStyles = () => {
             justifyContent: "center",
             gap: 5,
         },
-        headerText: {
-            fontFamily: "dana-regular",
-            color: colors.onSurface,
-            fontSize: 16,
-            fontWeight: "400",
-            lineHeight: 24,
-            marginBottom: 5
-        },
-
-        seeMoreText: {
-            color: colors.darkPrimary,
-            fontSize: 14,
-            fontWeight: "500",
-            lineHeight: 20,
-            marginBottom: 3.5
-        },
         buttonTextStyle: {
             fontSize: 14,
+            lineHeight: 16,
         },
-
-
         buttonWrapper: {
             backgroundColor: colors.primaryContainer,
             flexDirection: "row",
@@ -383,8 +487,6 @@ const useThemedStyles = () => {
             borderRadius: 6,
             marginVertical: 6,
         },
-
-
         leftWrapper: {
             backgroundColor: colors.primaryContainer,
             flexDirection: "row",
@@ -392,33 +494,31 @@ const useThemedStyles = () => {
             alignItems: "center",
         },
         textWrapper: {
-            alignItems: "flex-start",
-            marginLeft: 10,
+            flexDirection: 'row',
+            alignItems: "center",
+            marginHorizontal: 8,
+            justifyContent: "space-between",
+            width: '94%'
         },
-        subjectText: {
-            fontFamily: "dana-regular",
-            fontWeight: "400",
-            fontSize: 16,
-            lineHeight: 24,
-            letterSpacing: 0.02,
-            textAlign: "left",
-            color: colors.onSurfaceHigh,
+        enteringWrapper: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
         },
-
         statusWrapper: {
             flexDirection: "row",
             alignItems: "center",
-            paddingVertical: 15,
+            paddingVertical: 13,
             paddingHorizontal: 15,
             borderRadius: 6,
         },
-        statusText: {
-            fontFamily: "dana-regular",
-            fontWeight: "400",
-            fontSize: 12,
-            lineHeight: 16,
-            textAlign: "left",
-        }
+        enterToWrapper: {
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 13,
+            paddingHorizontal: 15,
+            borderRadius: 6,
+        },
     });
 };
 

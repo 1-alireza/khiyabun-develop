@@ -6,12 +6,13 @@ import React, {useEffect, useRef, useState} from "react";
 import FormItem from "./Form";
 import {useTranslation} from "react-i18next";
 import {getRequest} from "../../utils/sendRequest";
-import {Menu, MenuOption, MenuOptions, MenuTrigger} from "react-native-popup-menu";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import EmptyData from "../../components/EmptyData";
+import {useSelector} from "react-redux";
 
 function FormScreen({navigation}) {
     const {t, i18n} = useTranslation();
+    const userToken = useSelector(state => state.login.token);
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
     const [refreshing, setRefreshing] = useState(false);
@@ -52,7 +53,7 @@ function FormScreen({navigation}) {
 
 
     const getForms = async () => {
-        let res = await getRequest("forms")
+        let res = await getRequest("forms", {}, userToken)
         console.log("forms", res)
         setData(data => res.data)
         if (data.length > 0) {
@@ -62,10 +63,10 @@ function FormScreen({navigation}) {
 
 
     const getSearchedForms = async () => {
-        const body={
-            searchedForm:debouncedValue
+        const body = {
+            searchedForm: debouncedValue
         }
-        let res = await getRequest("forms",body)
+        let res = await getRequest("forms", body, userToken)
         console.log("searched forms", res)
         setData(data => res.data)
         if (!res.data.length > 0) {
@@ -110,7 +111,10 @@ function FormScreen({navigation}) {
             ) : <EmptyData notFoundError={notFoundError}/>
 
             }
-            <Pressable style={styles.addNote} onPress={() => navigation.navigate("AddForm")}>
+            <Pressable style={styles.addNote} onPress={() => {
+                navigation.navigate("AddForm");
+                if (Platform.OS !== 'android') window.history.pushState({}, 'AddForm');
+            }}>
                 <KhiyabunIcons name={"add-outline"}
                                size={24}
                                color={colors.primary}/>

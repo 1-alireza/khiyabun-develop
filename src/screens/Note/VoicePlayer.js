@@ -1,109 +1,169 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Pressable, I18nManager} from 'react-native';
+import {View, Text, Pressable, StyleSheet, I18nManager} from 'react-native';
 import {Audio} from 'expo-av';
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import {useTheme} from "@react-navigation/native";
-import {useTranslation} from "react-i18next";
-import Slider from 'react-native-elements'
-
+import gStyles from "../../global-styles/GlobalStyles";
+import Slider from '@react-native-community/slider';
+import CustomText from "../../components/CustomText";
 
 const VoicePlayer = ({audioFile}) => {
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
-    const {t, i18n} = useTranslation();
+
     const [sound, setSound] = useState();
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(0);
     const [position, setPosition] = useState(0);
-    const [isBuffering, setIsBuffering] = useState(false);
-    const playIcon = <KhiyabunIcons name={"play-arrow-bold"} size={24} color={colors.surfaceContainerLowest}/>
-    const pauseIcon = <KhiyabunIcons name={"pause-bold"} size={24} style={styles.icon}
-                                     color={colors.surfaceContainerLowest}/>
+    const [intervalId, setIntervalId] = useState(null);
 
-    const handlePlaySound = async () => {
+    useEffect(() => {
+        loadSound();
+        return cleanup;
+    }, [audioFile]);
+
+    const loadSound = async () => {
         try {
-            if (sound) {
-                await sound.playAsync();
-                setIsPlaying(true);
-            } else {
-                const {sound: newSound} = await Audio.Sound.createAsync(
-                    {uri: audioFile},
-                    {shouldPlay: true},
-                    onPlaybackStatusUpdate
-                );
-                setSound(newSound);
-                setIsPlaying(true);
-            }
+            const {sound: newSound} = await Audio.Sound.createAsync(
+                {uri: audioFile},
+                {},
+                onPlaybackStatusUpdate
+            );
+            setSound(newSound);
         } catch (error) {
-            console.log('Error playing sound: ', error);
+            console.error("Error loading sound:", error);
         }
     };
 
-    const handlePauseSound = async () => {
-        try {
-            if (sound) {
-                await sound.pauseAsync();
-                setIsPlaying(false);
-
-            }
-        } catch (error) {
-            console.log('Error pausing sound: ', error);
-        }
-    };
-
-    const onPlaybackStatusUpdate = (status) => {
+    const onPlaybackStatusUpdate = async (status) => {
         if (status.isLoaded) {
             setDuration(status.durationMillis);
             setPosition(status.positionMillis);
             setIsPlaying(status.isPlaying);
-            setIsBuffering(status.isBuffering);
+
+            // Check if playback has finished
+            if (status.positionMillis >= status.durationMillis && isPlaying) {
+                resetPlayback(); // Reset if position meets or exceeds duration
+            }
+        } else {
+            console.error("Sound not loaded, status:", status);
         }
+    };
+
+    const resetPlayback = async () => {
+        if (sound) {
+            await sound.stopAsync();
+            setPosition(0); // Reset position to start
+            setIsPlaying(false); // Update playing state
+        }
+    };
+
+    const handlePlaySound = async () => {
+        if (!sound) {
+            console.warn("Sound not loaded, cannot play.");
+            return;
+        }
+        try {
+            await sound.playAsync();
+            setIsPlaying(true);
+            startPositionTracker();
+        } catch (error) {
+            console.error("Error playing sound:", error);
+        }
+    };
+
+    const handlePauseSound = async () => {
+        if (sound) {
+            try {
+                await sound.pauseAsync();
+                setIsPlaying(false);
+                clearInterval(intervalId);
+            } catch (error) {
+                console.error("Error pausing sound:", error);
+            }
+        }
+    };
+
+    const handleSliderValueChange = async (value) => {
+        console.log(value,"sad")
+        const newPosition = value * duration;
+        setPosition(newPosition);
+        if (sound) {
+            try {
+                await sound.setPositionAsync(newPosition);
+            } catch (error) {
+                console.error("Error setting position on sound:", error);
+            }
+        }
+    };
+
+    const startPositionTracker = () => {
+        if (intervalId) clearInterval(intervalId);
+
+        const id = setInterval(async () => {
+            if (sound) {
+                const status = await sound.getStatusAsync();
+                if (status.isLoaded) {
+                    setPosition(status.positionMillis);
+                }
+            }
+        }, 100);
+        setIntervalId(id);
+    };
+
+    const cleanup = async () => {
+        if (sound) {
+            await sound.stopAsync();
+            await sound.unloadAsync();
+        }
+        clearInterval(intervalId);
     };
 
     const formatTime = (milliseconds) => {
         if (milliseconds == null || milliseconds < 0) {
             return '00:00';
         }
-
         const totalSeconds = Math.floor(milliseconds / 1000);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
-
-        const pad = (number) => {
-            if (number < 10) {
-                return '0' + number;
-            }
-            return number;
-        };
-
-        return pad(minutes) + ':' + pad(seconds);
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
 
     return (
         <View style={styles.container}>
-            <Pressable style={styles.controlButton} onPress={isPlaying ? handlePauseSound : handlePlaySound}>
-                {isPlaying ? pauseIcon : playIcon}
-            </Pressable>
             <View style={styles.progressBarContainer}>
-                <View style={[styles.progressBarWrapper]}>
-                    <View style={[styles.progressBar, {width: (position / duration) * 100 + '%'}]}/>
-                </View>
-                <Text style={styles.timeText}>{formatTime(position)}</Text>
+                <Slider
+                    style={styles.slider}
+                    minimumValue={0}
+                    maximumValue={1}
+                    value={duration > 0 ? position / duration : 0}
+                    onValueChange={handleSliderValueChange}
+                    minimumTrackTintColor={colors.primary}
+                    maximumTrackTintColor={colors.surfaceContainer}
+                    thumbTintColor={colors.primary}
+                />
+                <CustomText customStyle={styles.timeText} color={colors.primary} size={14}>{formatTime(position)}</CustomText>
+
             </View>
+            <Pressable style={styles.controlButton} onPress={isPlaying ? handlePauseSound : handlePlaySound}>
+                <KhiyabunIcons
+                    name={isPlaying ? "pause-bold" : "play-arrow-bold"}
+                    size={24}
+                    color={colors.surfaceContainerLowest}
+                />
+            </Pressable>
         </View>
     );
 };
-
 
 const useThemedStyles = (colors) => {
     const isRTL = I18nManager.isRTL;
 
     return StyleSheet.create({
         container: {
-            flexDirection: isRTL ? "row-reverse" : "row",
+            flexDirection: isRTL ? "row" : "row-reverse",
             alignItems: 'center',
             justifyContent: "flex-start",
-            paddingVertical: 16,
             paddingHorizontal: 8,
             gap: 4,
         },
@@ -118,39 +178,17 @@ const useThemedStyles = (colors) => {
         },
         progressBarContainer: {
             width: '90%',
-            borderRadius: 4,
-            justifyContent: "center",
-            alignItems: isRTL ? "flex-end" : "flex-start",
             marginTop: 20,
-            gap: 5,
-
+            justifyContent: "center",
+            alignItems: 'flex-end',
+            marginBottom: 10
         },
-        progressBarWrapper: {
-            height: 5,
-            borderRadius: 4,
-            width: "90%",
-            backgroundColor: colors.surfaceContainer,
-            position: "relative"
-        },
-        progressBar: {
-            height: 5,
-            borderRadius: 4,
-            backgroundColor: colors.primary,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 999
-        },
-        timeContainer: {
-            width: '90%',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            backgroundColor: "yellow"
+        slider: {
+            width: '100%', // Full width slider
+            height: 20,
         },
         timeText: {
-            color: colors.primary,
-            fontSize: 14,
-            fontFamily: 'dana-regular'
+            paddingHorizontal: 10
         },
     });
 };

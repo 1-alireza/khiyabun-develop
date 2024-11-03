@@ -4,12 +4,15 @@ import KhiyabunIcons from "../../components/KhiyabunIcons";
 import {useTheme} from "@react-navigation/native";
 import {I18nManager} from 'react-native';
 import gStyle from "../../global-styles/GlobalStyles"
+import CustomText from "../../components/CustomText";
+import {useSelector} from "react-redux";
 
 function BoardCard({title, place, pressable = true, textStyle, secondaryText, children, onPress, icon, iconStyle}) {
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
-    const {t} = useTranslation(); // دریافت توابع ترجمه و مدیریت زبان
+    const {t} = useTranslation();
     const isRTL = I18nManager.isRTL;
+
 
     if (secondaryText) {
         if (pressable) {
@@ -17,10 +20,11 @@ function BoardCard({title, place, pressable = true, textStyle, secondaryText, ch
                 style={place === "middle" ? styles.appOption : place === "first" ? styles.appOptionFirst : styles.appOptionLast}
                 onPress={onPress}>
                 <View style={styles.textWrapper}>
-                    <Text style={textStyle}>
+                    <CustomText lineHeight={20} size={16} customStyle={textStyle}>
                         {t(title)}
-                    </Text>
-                    <Text style={styles.secondaryText}>{secondaryText}</Text>
+                    </CustomText>
+                    <CustomText lineHeight={20} size={12}
+                                customStyle={styles.secondaryText}>{secondaryText}</CustomText>
                 </View>
                 {isRTL ?
                     <KhiyabunIcons name="direction-left-bold" size={24} style={iconStyle}/>
@@ -37,10 +41,11 @@ function BoardCard({title, place, pressable = true, textStyle, secondaryText, ch
                 style={place === "middle" ? styles.appOption : place === "first" ? styles.appOptionFirst : styles.appOptionLast}
                 onPress={onPress}>
                 <View style={styles.textWrapper}>
-                    <Text style={textStyle}>
+                    <CustomText lineHeight={20} size={16} customStyle={textStyle}>
                         {t(title)}
-                    </Text>
-                    <Text style={styles.secondaryText}>{secondaryText}</Text>
+                    </CustomText>
+                    <CustomText lineHeight={20} size={16}
+                                customStyle={styles.secondaryText}>{secondaryText}</CustomText>
                 </View>
                 {isRTL ?
                     <KhiyabunIcons name="direction-left-bold" size={24} style={iconStyle}/>
@@ -59,11 +64,17 @@ function BoardCard({title, place, pressable = true, textStyle, secondaryText, ch
                 style={place === "middle" ? styles.appOption : place === "first" ? styles.appOptionFirst : styles.appOptionLast}
                 onPress={onPress}>
                 <View style={styles.textWrapper}>
-                    <Text style={textStyle}>
+                    <CustomText lineHeight={20} size={16} customStyle={textStyle}>
                         {t(title)}
-                    </Text>
+                    </CustomText>
                 </View>
-                <KhiyabunIcons name={icon} size={24} style={iconStyle}/>
+                {isRTL ?
+                    <KhiyabunIcons name="direction-left-bold" size={24} style={iconStyle}/>
+
+                    :
+                    <KhiyabunIcons name="direction-right-bold" size={24} style={iconStyle}/>
+
+                }
                 {children}
             </Pressable>
         } else {
@@ -71,20 +82,37 @@ function BoardCard({title, place, pressable = true, textStyle, secondaryText, ch
                 style={place === "middle" ? styles.appOption : place === "first" ? styles.appOptionFirst : styles.appOptionLast}
                 onPress={onPress}>
                 <View style={styles.textWrapper}>
-                    <Text style={textStyle}>
+                    <CustomText lineHeight={20} size={16} customStyle={textStyle}>
                         {t(title)}
-                    </Text>
+                    </CustomText>
                 </View>
-                <KhiyabunIcons name={icon} size={24} style={iconStyle}/>
+                {isRTL ?
+                    <KhiyabunIcons name="direction-left-bold" size={24} style={iconStyle}/>
+
+                    :
+                    <KhiyabunIcons name="direction-right-bold" size={24} style={iconStyle}/>
+
+                }
                 {children}
             </View>
         }
-
     }
 
 }
 
 const useThemedStyles = (colors) => {
+    const fontSizeScale = useSelector((state) => state.fontSizeSlice.fontSizeScale);
+    let height = 56
+    if (fontSizeScale === 3) {
+        height = height * 1.1
+    }
+    if (fontSizeScale === 4) {
+        height = height * 1.2
+    }
+    if (fontSizeScale === 5) {
+        height = height * 1.3
+    }
+
     return StyleSheet.create({
         textWrapper: {
             flexDirection: "column",
@@ -93,8 +121,6 @@ const useThemedStyles = (colors) => {
         },
         secondaryText: {
             fontWeight: "400",
-            fontSize: 12,
-            lineHeight: 16,
             color: colors.onSurfaceLow,
             paddingHorizontal: 8,
             fontFamily: gStyle.fontMain.fontFamily,
@@ -107,7 +133,7 @@ const useThemedStyles = (colors) => {
             paddingHorizontal: 12,
             borderBottomColor: colors.outlineSurface,
             borderBottomWidth: 1,
-            height: 56,
+            height: height
 
         },
         appOptionFirst: {
@@ -118,7 +144,7 @@ const useThemedStyles = (colors) => {
             paddingHorizontal: 12,
             borderBottomColor: colors.outlineSurface,
             borderBottomWidth: 1,
-            height: 56,
+            height: height
         },
         appOptionLast: {
             flexDirection: "row",
@@ -126,7 +152,7 @@ const useThemedStyles = (colors) => {
             alignItems: "center",
             paddingVertical: 8,
             paddingHorizontal: 12,
-            height: 56,
+            height: height
         },
 
     });

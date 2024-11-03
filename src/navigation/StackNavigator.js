@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {createStackNavigator} from "@react-navigation/stack";
 import {useTheme} from "@react-navigation/native";
-import {I18nManager, StatusBar} from "react-native";
+import {I18nManager, Platform, StatusBar} from "react-native";
 import {useSelector} from "react-redux";
 import {useTranslation} from "react-i18next";
 import gStyles from "../global-styles/GlobalStyles";
@@ -21,6 +21,7 @@ import NotificationsSetting from "../screens/Notifications/NotificationsSetting"
 import HelpAndSupportScreen from "../screens/HelpAndSupportScreen";
 import PageHeader from "../components/PageHeader";
 import ProfileScreen from "../screens/Profile/ProfileScreen";
+import ProfScreen from "../screens/ProfileScreen"
 import NoteScreen from "../screens/Note/NoteScreen";
 import FormScreen from "../screens/Form/FormScreen";
 import CheckListScreen from "../screens/CheckList/CheckListScreen";
@@ -50,10 +51,18 @@ import TeamScreen from "../screens/Team/TeamScreen";
 import TeamMemberShipHistory from "../screens/TeamMemberSheepHistory/TeamMemberShipHistory";
 import AudioRecorder from "../screens/Note/AudioRecorder";
 import ResetPasswordScreen from "../screens/LoginAndRegister/ResetPasswordScreen";
+import DayLog from "../screens/Timesheet/DayLog";
+import DeleteShift from "../screens/Timesheet/DeleteShift";
+import EditShift from "../screens/Timesheet/EditShift";
+import NewTimeClockErrandMap from "../screens/TimeClock/NewErrandMap";
+import ChangePasswordScreen from "../screens/ChangePassword/ChangePasswordScreen";
+import hardwareBackHandler from "./hardwareBackHandler";
 
 const Stack = createStackNavigator();
 
 const StackNavigator = () => {
+    hardwareBackHandler();
+
     const {t} = useTranslation();
     const {colors} = useTheme();
     const [isVisible, setIsVisible] = useState(false)
@@ -89,199 +98,220 @@ const StackNavigator = () => {
             >
                 {isUserLogin ? (
                     <>
+                        <Stack.Screen name="SetProfile" component={SetProfileScreen} options={(route) => {
+                            const {is_edit} = route.route.params;
+                            if (is_edit) {
+                                return {
+                                    headerShown: true,
+                                    title: t("set_profile"),
+                                    titleColor: colors.onSurfaceHigh,
+                                    headerTintColor: colors.onSurface,
+                                }
+                            } else {
+                                return {
+                                    header: ({navigation, route, options, back}) => {
+                                        return (
+                                            <PageHeader
+                                                title={t("set_profile")}
+                                                titleColor={colors.onSurfaceHigh}
+                                                titleSize={16}
+                                                leftIconName="close-outline"
+                                                rightIconName=""
+                                                onLeftIconPress={() => {
+                                                    navigation.navigate("Main");
+                                                    if (Platform.OS !== 'android') window.history.pushState({}, 'Main');
+                                                }}
+                                            />
+                                        );
+                                    }
+                                }
+                            }
+                        }}/>
+                        <Stack.Screen name="SetLocation" component={SetLocationScreen} options={{
+                            headerShown: true,
+                            title: t("set_location_title")
+                        }}/>
+                        <Stack.Screen name="SetWorkingHours" component={SetWorkingHoursScreen} options={{
+                            headerShown: true,
+                            title: t("set_hours_title")
+                        }}/>
+                        <Stack.Screen name="SetSocialMedia" component={SetSocialMediaScreen} options={{
+                            headerShown: true,
+                            title: t("social_media_title")
+                        }}/>
                         <Stack.Screen name="Main" component={BottomTabNavigator} options={{headerShown: false}}/>
                         <Stack.Screen name="Audio" component={AudioRecorder} options={{headerShown: false}}/>
-                        <Stack.Screen name="SetProfile" component={SetProfileScreen} options={(route) => {
-                                          const {is_edit} = route.route.params;
-                                          if (is_edit) {
-                                              return {
-                                                  headerShown: true,
-                                                  title: t("set_profile"),
-                                                  titleColor: colors.onSurfaceHigh,
-                                                  headerTintColor: colors.onSurface,
-                                              }
-                                          } else {
-                                              return {
-                                                  header: ({navigation, route, options, back}) => {
-                                                      return (
-                                                          <PageHeader
-                                                              title={t("set_profile")}
-                                                              titleColor={colors.onSurfaceHigh}
-                                                              titleSize={16}
-                                                              leftIconName="close-outline"
-                                                              rightIconName=""
-                                                              onLeftIconPress={() => {
-                                                                  navigation.navigate("Main");
-                                                              }}
-                                                          />
-                                                      );
-                                                  }
-                                              }
-                                          }
-                                      }}/>
-                        <Stack.Screen name="SetLocation" component={SetLocationScreen} options={{
-                                          headerShown: true,
-                                          title: t("set_location_title")
-                                      }}/>
-                        <Stack.Screen name="SetWorkingHours" component={SetWorkingHoursScreen} options={{
-                                          headerShown: true,
-                                          title: t("set_hours_title")
-                                      }}/>
-                        <Stack.Screen name="SetSocialMedia" component={SetSocialMediaScreen} options={{
-                                          headerShown: true,
-                                          title: t("social_media_title")
-                                      }}/>
                         <Stack.Screen name="SaveErrand" component={SaveErrandScreen} options={{
-                                          headerShown: true,
-                                          title: t("save-errand")
-                                      }}/>
+                            headerShown: true,
+                            title: t("save-errand")
+                        }}/>
                         <Stack.Screen name="AddFlag" component={AddFlagScreen} options={{
-                                          headerShown: true,
-                                          title: t("add-flag")
-                                      }}/>
+                            headerShown: true,
+                            title: t("add-flag")
+                        }}/>
                         <Stack.Screen name="ErrandDetails" component={ErrandDetailsScreen} options={{
-                                          headerShown: true,
-                                          title: t("errand-details")
-                                      }}/>
+                            headerShown: true,
+                            title: t("errand-details")
+                        }}/>
                         <Stack.Screen name="Support" component={SupportScreen} options={{headerShown: true}}/>
                         <Stack.Screen name="Khiyabun" component={KhiyabunScreen} options={{headerShown: true}}/>
                         <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} options={{headerShown: true}}/>
                         <Stack.Screen name="Setting" component={SettingsScreen} options={{headerShown: true}}/>
                         <Stack.Screen name="chats" component={ChatScreen} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <PageHeader
-                                                      title="Chat & Notifications"
-                                                      leftIconName={icon}
-                                                      rightIconName="search-normal-outline"
-                                                      onLeftIconPress={() => {
-                                                          navigation.goBack();
-                                                      }}
-                                                      onRightIconPress={() => {
-                                                          alert("right icon pressed baby!")
-                                                      }}
-                                                  />
-                                              );
-                                          }
-                                      }}/>
+                            header: ({navigation, route, options, back}) => {
+                                return (
+                                    <PageHeader
+                                        title="Chat & Notifications"
+                                        leftIconName={icon}
+                                        rightIconName="search-normal-outline"
+                                        onLeftIconPress={() => {
+                                            navigation.goBack();
+                                        }}
+                                        onRightIconPress={() => {
+                                            alert("right icon pressed baby!")
+                                        }}
+                                    />
+                                );
+                            }
+                        }}/>
                         <Stack.Screen name="Notifications" component={Notifications} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <PageHeader
-                                                      title="Notifications"
-                                                      leftIconName={icon}
-                                                      rightIconName="setting-outline"
-                                                      onLeftIconPress={() => {
-                                                          navigation.goBack();
-                                                      }}
-                                                      onRightIconPress={() => {
-                                                          navigation.navigate("NotificationsSetting");
-                                                      }}
-                                                  />
-                                              );
-                                          }
-                                      }}/>
+                            header: ({navigation, route, options, back}) => {
+                                return (
+                                    <PageHeader
+                                        title="Notifications"
+                                        leftIconName={icon}
+                                        rightIconName="setting-outline"
+                                        onLeftIconPress={() => {
+                                            navigation.goBack();
+                                        }}
+                                        onRightIconPress={() => {
+                                            navigation.navigate("NotificationsSetting");
+                                            if (Platform.OS !== 'android') window.history.pushState({}, 'NotificationsSetting');
+
+                                        }}
+                                    />
+                                );
+                            }
+                        }}/>
                         <Stack.Screen name="NotificationsSetting" component={NotificationsSetting} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <PageHeader
-                                                      title="Notifications"
-                                                      leftIconName={icon}
-                                                      rightIconName="setting-outline"
-                                                      onLeftIconPress={() => {
-                                                          navigation.goBack();
-                                                      }}
-                                                      onRightIconPress={() => {
-                                                          alert("right icon pressed baby!")
-                                                      }}
-                                                  />
-                                              );
-                                          }
-                                      }}/>
+                            headerShown: true,
+                            title: t("notification")
+                        }}/>
                         <Stack.Screen name="office" component={OfficeScreen} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <PageHeader
-                                                      title={t('ARAKO_GROUP')}
-                                                      titleColor={colors.primary}
-                                                      titleSize={18}
-                                                      leftIconName="tag-user-outline"
-                                                      rightIconName="direct-notification-outline"
-                                                      onLeftIconPress={() => {
-                                                          console.log("left icon pressed!")
-                                                      }}
-                                                      onRightIconPress={() => {
-                                                          // navigation.navigate("chats");
-                                                          console.log("right icon pressed!")
-                                                      }}
-                                                  />
-                                              );
-                                          }
-                                      }}/>
+                            header: ({navigation, route, options, back}) => {
+                                return (
+                                    <PageHeader
+                                        title={t('ARAKO_GROUP')}
+                                        titleColor={colors.primary}
+                                        titleSize={18}
+                                        leftIconName="tag-user-outline"
+                                        rightIconName="direct-notification-outline"
+                                        onLeftIconPress={() => {
+                                            console.log("left icon pressed!")
+                                        }}
+                                        onRightIconPress={() => {
+                                            navigation.navigate("chats");
+                                            if (Platform.OS !== 'android') window.history.pushState({}, 'chats');
+                                            console.log("right icon pressed!")
+                                        }}
+                                    />
+                                );
+                            }
+                        }}/>
                         <Stack.Screen name="Timesheet" component={TimesheetScreen} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <TimesheetHeader
-                                                      onLeftIconPress={() => {
-                                                          navigation.goBack();
-                                                      }}
-
-                                                  />
-                                              );
-                                          }
-                                      }}/>
-                        <Stack.Screen name="HelpAndSupport" component={HelpAndSupportScreen} options={{headerShown: true, title: 'Help & Support'}}/>
+                            header: ({navigation}) => {
+                                return (
+                                    <TimesheetHeader
+                                        onLeftIconPress={() => {
+                                            navigation.goBack();
+                                        }}
+                                    />
+                                );
+                            }
+                        }}/>
+                        <Stack.Screen name="DayLog" component={DayLog} options={{
+                            headerShown: true,
+                            title: t("friday")
+                        }}/>
+                        <Stack.Screen name="DeleteShift" component={DeleteShift} options={{
+                            headerShown: true,
+                            title: t("delete_shift")
+                        }}/>
+                        <Stack.Screen name="EditShift" component={EditShift} options={{
+                            headerShown: true,
+                            title: t("edit_shift")
+                        }}/>
+                        <Stack.Screen name="HelpAndSupport" component={HelpAndSupportScreen}
+                                      options={{headerShown: true, title: 'Help & Support'}}/>
                         <Stack.Screen name="ProfileS" component={ProfileScreen} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <PageHeader
-                                                      title=""
-                                                      leftIconName={icon}
-                                                      rightIconName="calender-outline"
-                                                      onLeftIconPress={() => {
-                                                          navigation.goBack();
-                                                      }}
-                                                      onRightIconPress={() => {
-                                                          alert("right icon pressed baby!")
-                                                      }}
-                                                  />
-                                              );
-                                          }
-                                      }}/>
+                            header: ({navigation, route, options, back}) => {
+                                return (
+                                    <PageHeader
+                                        title=""
+                                        leftIconName={icon}
+                                        rightIconName="calender-outline"
+                                        onLeftIconPress={() => {
+                                            navigation.goBack();
+                                        }}
+                                        onRightIconPress={() => {
+                                            alert("right icon pressed baby!")
+                                        }}
+                                    />
+                                );
+                            }
+                        }}/>
+                        <Stack.Screen name="Prof" component={ProfScreen} options={{
+                            header: ({navigation, route, options, back}) => {
+                                return (
+                                    <PageHeader
+                                        title=""
+                                        leftIconName={icon}
+                                        rightIconName="calender-outline"
+                                        onLeftIconPress={() => {
+                                            navigation.goBack();
+                                        }}
+                                        onRightIconPress={() => {
+                                            alert("right icon pressed baby!")
+                                        }}
+                                    />
+                                );
+                            }
+                        }}/>
                         <Stack.Screen name="AddedPlace" component={AddedPlaceScreen} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <PageHeader
-                                                      title=""
-                                                      leftIconName={icon}
-                                                      rightIconName="more-bold"
-                                                      onLeftIconPress={() => {
-                                                          navigation.goBack();
-                                                      }}
-                                                      onRightIconPress={() => {
-                                                          alert("right icon pressed baby!")
-                                                      }}
-                                                  />
-                                              );
-                                          }
-                                      }}/>
+                            header: ({navigation, route, options, back}) => {
+                                return (
+                                    <PageHeader
+                                        title=""
+                                        leftIconName={icon}
+                                        rightIconName="more-bold"
+                                        onLeftIconPress={() => {
+                                            navigation.goBack();
+                                        }}
+                                        onRightIconPress={() => {
+                                            alert("right icon pressed baby!")
+                                        }}
+                                    />
+                                );
+                            }
+                        }}/>
                         <Stack.Screen name="Note" component={NoteScreen} options={{
-                                          header: ({navigation, route, options, back}) => {
-                                              return (
-                                                  <PageHeader
-                                                      title="Note"
-                                                      leftIconName={icon}
-                                                      onLeftIconPress={() => {
-                                                          navigation.goBack();
-                                                      }}
+                            header: ({navigation, route, options, back}) => {
+                                return (
+                                    <PageHeader
+                                        title="Note"
+                                        leftIconName={icon}
+                                        onLeftIconPress={() => {
+                                            navigation.goBack();
+                                        }}
 
-                                                  >
-                                                      <NoteScreenHeader/>
-                                                  </PageHeader>
-                                              );
-                                          }
-                                      }}/>
-                        <Stack.Screen name="Form" component={FormScreen} options={{header: ({navigation, route, options, back}) => {
+                                    >
+                                        <NoteScreenHeader/>
+                                    </PageHeader>
+                                );
+                            }
+                        }}/>
+                        <Stack.Screen name="Form" component={FormScreen} options={{
+                            header: ({navigation, route, options, back}) => {
                                 return (
                                     <PageHeader
                                         title="Form"
@@ -295,8 +325,10 @@ const StackNavigator = () => {
                                         }}
                                     />
                                 );
-                            }}}/>
-                        <Stack.Screen name="Request" component={RequestScreen} options={{header: ({navigation, route, options, back}) => {
+                            }
+                        }}/>
+                        <Stack.Screen name="Request" component={RequestScreen} options={{
+                            header: ({navigation, route, options, back}) => {
                                 return (
                                     <PageHeader
                                         title="Request"
@@ -310,8 +342,10 @@ const StackNavigator = () => {
                                         }}
                                     />
                                 );
-                            }}}/>
-                        <Stack.Screen name="Team" component={TeamScreen} options={{header: ({navigation, route, options, back}) => {
+                            }
+                        }}/>
+                        <Stack.Screen name="Team" component={TeamScreen} options={{
+                            header: ({navigation, route, options, back}) => {
                                 return (
                                     <PageHeader
                                         title={t("team")}
@@ -322,12 +356,14 @@ const StackNavigator = () => {
                                         }}
                                         onRightIconPress={() => {
                                             navigation.navigate("TeamMemberShip");
-
+                                            if (Platform.OS !== 'android') window.history.pushState({}, 'TeamMemberShip');
                                         }}
                                     />
                                 );
-                            }}}/>
-                        <Stack.Screen name="CheckList" component={CheckListScreen} options={{header: ({navigation, route, options, back}) => {
+                            }
+                        }}/>
+                        <Stack.Screen name="CheckList" component={CheckListScreen} options={{
+                            header: ({navigation, route, options, back}) => {
                                 return (
                                     <PageHeader
                                         title="CheckList"
@@ -339,22 +375,37 @@ const StackNavigator = () => {
                                         <CheckListHeader/>
                                     </PageHeader>
                                 );
-                            }}}/>
-                        <Stack.Screen name="AddForm" component={AddFormScreen} options={{headerShown: true, title: 'AddFormScreen'}}/>
-                        <Stack.Screen name="TeamMemberShip" component={TeamMemberShipHistory} options={{headerShown: true, title: 'TeamMemberShipHistory'}}/>
+                            }
+                        }}/>
+                        <Stack.Screen name="AddForm" component={AddFormScreen}
+                                      options={{headerShown: true, title: 'AddFormScreen'}}/>
+                        <Stack.Screen name="TeamMemberShip" component={TeamMemberShipHistory}
+                                      options={{headerShown: true, title: 'TeamMemberShipHistory'}}/>
                         <Stack.Screen name="AllComponents" component={AllComponents} options={{headerShown: true}}/>
                         <Stack.Screen name="NearByPeople" component={NearByPeopleScreen} options={{headerShown: true}}/>
+                        <Stack.Screen name="NewTimeClockErrandMap" component={NewTimeClockErrandMap}
+                                      options={{headerShown: false}}/>
+                        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen}
+                                      options={{headerShown: true}}/>
+
                     </>
                 ) : (
                     <>
+
+                        {/*<Stack.Screen name="WebViewTest" component={WebViewTest} options={{headerShown: false}}/>*/}
+                        {/*<Stack.Screen name="NewTimeClockErrandMap" component={NewTimeClockErrandMap} options={{headerShown: false}}/>*/}
                         <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}}/>
-                        <Stack.Screen name="LoginWithMobile" component={LoginWithMobileScreen} options={{headerShown: false}}/>
-                        <Stack.Screen name="LoginWithUsername" component={LoginWithUsernameScreen} options={{headerShown: false}}/>
+                        <Stack.Screen name="LoginWithMobile" component={LoginWithMobileScreen}
+                                      options={{headerShown: false}}/>
+                        <Stack.Screen name="LoginWithUsername" component={LoginWithUsernameScreen}
+                                      options={{headerShown: false}}/>
                         <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}}/>
                         <Stack.Screen name="SmsVerify" component={SmsVerifyScreen} options={{headerShown: false}}/>
                         <Stack.Screen name="SetUsername" component={SetUsernameScreen} options={{headerShown: false}}/>
-                        <Stack.Screen name="ForgetPassword" component={ForgetPasswordScreen} options={{headerShown: false}}/>
-                        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{headerShown: false}}/>
+                        <Stack.Screen name="ForgetPassword" component={ForgetPasswordScreen}
+                                      options={{headerShown: false}}/>
+                        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen}
+                                      options={{headerShown: false}}/>
                     </>
                 )}
 

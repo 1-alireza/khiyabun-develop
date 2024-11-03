@@ -1,14 +1,15 @@
 import {useTheme} from "@react-navigation/native";
-import React, {useState} from "react";
-import {StyleSheet, Text, View} from "react-native";
+import React, {useEffect, useState} from "react";
+import {I18nManager, Platform, StyleSheet, Text, View} from "react-native";
 import {useTranslation} from "react-i18next";
-import {postRequest} from "../../utils/sendRequest";
+import {getRequest, postRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
 import CustomDropdown from "../../components/CustomDropdown";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import gStyles from "../../global-styles/GlobalStyles";
-import {COUNTRY_CODE} from "../../utils/constant";
+import {MOBILE_START_REGEX} from "../../utils/constant";
+import CustomText from "../../components/CustomText";
 
 const EnteredMobileSection = ({navigation, typeSend}) => {
     const {t} = useTranslation();
@@ -16,20 +17,39 @@ const EnteredMobileSection = ({navigation, typeSend}) => {
     const styles = useThemedStyles(colors);
 
     const [phoneEntered, setPhoneEntered] = useState("");
-    const [countryCode, setCountryCode] = useState("98");
-    const [loader, setLoader] = useState(false);
+    const [countryCode, setCountryCode] = useState("00");
+    const [countryCodes, setCountryCodes] = useState([]);
+    useEffect(() => {
+        const getCountriesCode = async () => {
+            let api = "countries";
+            let response = await getRequest(api, {}, "");
+            let countriesCode = response.data.map((item) => (
+                    {label: item.name, value: item.code}
+                )
+            )
+            // console.log("response get countries code", countriesCode);
+            setCountryCodes(countriesCode);
+        };
+        getCountriesCode();
+    }, [])
+
+    const [loading, setLoading] = useState(false);
     const selectCountry = (country) => {
         setCountryCode(country);
+        setPhoneEntered("");
     }
     const onChangePhoneHandler = (value) => {
         setPhoneEntered(value);
     }
-
     const getSmsCode = async () => {
-        setLoader(true);
+        setLoading(true);
         try {
+            let mobile = "+" + countryCode + phoneEntered;
+            if (countryCode === "98") {
+                mobile = "+" + countryCode + (phoneEntered.replace(/^0/, ""));
+            }
             let api,
-                body = {mobileNumber: phoneEntered};
+                body = {mobileNumber: mobile};
             switch (typeSend) {
                 case "register":
                     api = 'users/send_verification_code';
@@ -40,36 +60,41 @@ const EnteredMobileSection = ({navigation, typeSend}) => {
                 default:
                     api = 'users/login_send_code';
             }
-            const response = await postRequest(api, body, false);
+            const response = await postRequest(api, body, "");
             if (response.statusCode === 200) {
                 errorHandling(response, "confirm");
-                navigation.navigate('SmsVerify', {
+                navigation.navigate("SmsVerify",{
                     phone_number: phoneEntered,
                     type_send: typeSend,
                     country_code: countryCode
-                })
+                });
+                if (Platform.OS !== 'android') window.history.pushState({}, 'SmsVerify');
             } else {
                 errorHandling(response, "warning");
             }
         } catch (e) {
             errorHandling(t("default_error"), "error");
         }
-        setLoader(false);
+        setLoading(false);
     }
     const redirectHandler = () => {
         if (typeSend === "register") {
             navigation.goBack()
         } else {
-            navigation.navigate("Register")
+            navigation.navigate("Register");
+            if (Platform.OS !== 'android') window.history.pushState({}, 'Register');
         }
     }
-
+    let disabledButton = !(
+        (countryCode === "98" && MOBILE_START_REGEX.test(phoneEntered) && phoneEntered.length >= 10) ||
+        (countryCode !== "98" && countryCode !== "00" && phoneEntered.length > 6)
+    );
     return (
         <>
             <CustomDropdown
-                data={COUNTRY_CODE}
+                search={true}
+                data={countryCodes}
                 callBackFunction={selectCountry}
-                defaultValue={countryCode}
             />
             <Input customStyles={styles.phoneNumber}
                    type="number"
@@ -83,14 +108,14 @@ const EnteredMobileSection = ({navigation, typeSend}) => {
                 onPress={getSmsCode}
                 label={t('verify')}
                 sizeButton="medium"
-                disabled={!(phoneEntered.trim().length === 11)}
-                showLoader={loader}
+                disabled={disabledButton}
+                showLoading={loading}
             />
             {(typeSend === "register" || typeSend === "login") &&
                 <View style={styles.hasAccountWrapper}>
-                    <Text style={styles.textHasAccount}>
+                    <CustomText color={colors.onSurface}>
                         {(typeSend === "register") ? t('have_account') : t('not_account')}
-                    </Text>
+                    </CustomText>
                     <Button
                         onPress={redirectHandler}
                         typeButton="full"
@@ -117,10 +142,6 @@ const useThemedStyles = (colors) => {
             width: "100%",
             direction: "rtl"
         },
-        textHasAccount: {
-            fontFamily: gStyles.fontMain.fontFamily,
-            color: colors.onSurface
-        },
         singUpButton: {
             marginTop: 0,
             paddingVertical: 0,
@@ -133,7 +154,8 @@ const useThemedStyles = (colors) => {
         },
         phoneNumber: {
             width: "100%",
-            marginBottom: 15
+            marginBottom: 15,
+            flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row'
         }
     });
 };

@@ -1,6 +1,6 @@
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import {Pressable, StyleSheet, Text, View} from "react-native";
+import {KeyboardAvoidingView, Pressable, StyleSheet, Text, View, Platform, ScrollView} from "react-native";
 import Sheet from "../../components/Sheet";
 import Button from "../../components/Button";
 import React, {useState, useEffect} from "react";
@@ -11,6 +11,9 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 import DraggableCheckbox from "./DraggableCheckbox";
 import {postRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
+import {useSelector} from "react-redux";
+import gStyles from "../../global-styles/GlobalStyles";
+import {NestableScrollContainer, NestableDraggableFlatList} from "react-native-draggable-flatlist"
 
 const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
     const {t, i18n} = useTranslation();
@@ -21,7 +24,8 @@ const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
     const [inputValue, setInputValue] = useState('');
     const [isAddingDisabled, setIsAddingDisabled] = useState(true);
     const [checkList, setCheckLists] = useState([]);
-    const [titleVal, setTitleVal] = useState('');
+    const [titleVal, setTitleVal] = useState('')
+    const userToken = useSelector(state => state.login.token);
 
 
     const handleAddInput = () => {
@@ -43,7 +47,7 @@ const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
                 isPrivate: status,
                 items: checkList
             }
-            let res = await postRequest("checklists", body)
+            let res = await postRequest("checklists", body, userToken)
             console.log("checklists", res)
             if (res.statusCode === 200) {
                 errorHandling(res, "confirm")
@@ -61,7 +65,7 @@ const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
     }
 
     const handleAddCheckbox = () => {
-       let id= Math.floor(Math.random() * (100000 - 1 + 1)) + 1;
+        let id = Math.floor(Math.random() * (100000 - 1 + 1)) + 1;
         const newCheckbox = {
             id: id,
             done: false,
@@ -85,7 +89,7 @@ const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
 
     const handleCheckboxChange = (id) => {
         const updatedCheckboxes = checkList.map((checkboxItem) =>
-            checkboxItem.id === id ? {...checkboxItem, isDone: !checkboxItem.isDone} : checkboxItem)
+            checkboxItem.id === id ? {...checkboxItem, done: !checkboxItem.done} : checkboxItem)
         setCheckLists(updatedCheckboxes);
     };
 
@@ -93,6 +97,19 @@ const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
     const deleteItem = (id) => {
         const filteredData = checkList.filter(item => item.id !== id);
         setCheckLists(filteredData)
+    }
+
+    const SheetFooter = () => {
+        return (
+            <View style={styles.sheetOptions}>
+                <Button label={t("cancel")} sizeButton={"small"} style={styles.cancelButton} width={30}
+                        styleText={styles.cancelButtonText} onPress={handleCancel}/>
+                <Button label={t("save")} disabled={disabled} sizeButton={"medium"}
+                        style={styles.selectButton}
+                        styleText={styles.selectButtonText} width={70} onPress={addChecklist}
+                        isBorder={true} borderColor={colors.primaryOutline}/>
+            </View>
+        )
     }
 
     const renderCheckBox = ({item, drag, isActive}) => <DraggableCheckbox item={item}
@@ -103,16 +120,22 @@ const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
 
 
     return (
+
         <Sheet isOpen={isVisible}
                scrollable={true}
                contentWrapperStyle={styles.wrapper}
-               fitContent={true}
                onClose={onClose}
-               snapPoint={500}>
+               modalStyle={{height: "100%"}}
+               modalHeight={450}
+               snapPoint={450}
+               footerComponent={SheetFooter}
+        >
             <View style={styles.sheetHeader}>
                 <Text style={styles.sheetHeaderText}>{t("add_checklist")}</Text>
             </View>
-            <View style={styles.sheetBody}>
+
+
+            <ScrollView contentContainerStyle={styles.sheetBody}>
                 <Input label={t("checkList_title")}
                        value={titleVal}
                        onChangeText={getTitleInputValue}
@@ -145,31 +168,22 @@ const AddCheckListSheet = ({isVisible, onClose, status, onChangeCallback}) => {
                         <KhiyabunIcons name={"add-outline"} color={color.darkPrimary}/>
                     </Pressable>
                 )}
-                <DraggableFlatList
-                    data={checkList}
-                    renderItem={renderCheckBox}
-                    dragHitSlop={
-                        {
-                            top: 0,
-                            right: 0,
-                            left: 0,
-                            bottom: 0,
-                        }
-                    }
-                    keyExtractor={(item) => `draggable-item-${item.id}`}
-                    onDragEnd={({data: updatedData}) => setCheckLists(updatedData)}
-                />
+                <NestableScrollContainer>
+                    <NestableDraggableFlatList
+                        data={checkList}
+                        renderItem={renderCheckBox}
+                        scrollEnabled={true}
+                        // scrollToOverflowEnabled={true}
+                        scrollable={true}
+                        keyExtractor={(item) => `draggable-item-${item.id}`}
+                        onDragEnd={({data: updatedData}) => setCheckLists(updatedData)}
+                        style={{backgroundColor: "red"}}
+                        showsVerticalScrollIndicator={true}
+                        alwaysBounceVertical={true}
+                    />
+                </NestableScrollContainer>
 
-
-                <View style={styles.sheetOptions}>
-                    <Button label={t("cancel")} sizeButton={"small"} style={styles.cancelButton} width={30}
-                            styleText={styles.cancelButtonText} onPress={handleCancel}/>
-                    <Button label={t("save")} disabled={disabled} sizeButton={"medium"}
-                            style={styles.selectButton}
-                            styleText={styles.selectButtonText} width={70} onPress={addChecklist}
-                            isBorder={true} borderColor={colors.primaryOutline}/>
-                </View>
-            </View>
+            </ScrollView>
         </Sheet>
 
 
@@ -183,24 +197,23 @@ const useThemedStyles = (colors) => {
             paddingBottom: 16,
             gap: 8,
             width: "100%",
-            height: 350,
             marginBottom: 40,
+            backgroundColor: "red"
         },
         sheetOptions: {
             flexDirection: "row",
             justifyContent: "flex-start",
             alignItems: "center",
-            position: "absolute",
-            bottom: -65,
-            paddingVertical: 10,
             marginBottom: 20,
             width: "100%",
-            backgroundColor: colors.surfaceContainerLowest
+            backgroundColor: colors.surfaceContainerLowest,
+            paddingHorizontal: 10,
         },
         wrapper: {
             padding: 0,
             paddingHorizontal: 10,
-            paddingVertical: 5
+            paddingVertical: 5,
+            flexGrow: 1
         },
         selectButton: {
             borderRadius: 8,
@@ -212,7 +225,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         cancelButton: {
@@ -225,7 +238,7 @@ const useThemedStyles = (colors) => {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         sheetHeader: {
@@ -238,13 +251,13 @@ const useThemedStyles = (colors) => {
         sheetHeaderText: {
             paddingHorizontal: 16,
             color: colors.onSurface,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles.fontBold.fontFamily,
             lineHeight: 24
         },
         addCheckListText: {
             fontSize: 14,
             lineHeight: 20,
-            fontFamily: 'dana-regular',
+            fontFamily: gStyles.fontMain.fontFamily,
             color: colors.darkPrimary
         },
         addCheckList: {

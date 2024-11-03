@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, View, Text, I18nManager} from "react-native";
+import {ScrollView, StyleSheet, Text, I18nManager} from "react-native";
 import React from "react";
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
@@ -8,27 +8,26 @@ import ProfileCardData from "./ProfileCardData";
 import ProfileMap from "./ProfileMap";
 import {useSelector} from "react-redux";
 import jalaali from "jalaali-js";
+import CustomText from "../../components/CustomText";
+import ProfileWorkingHours from "./ProfileWorkingHours";
 
-function ProfileScreen({navigation}) {
-    const {t, i18n} = useTranslation();
+function ProfileScreen() {
+    const {t} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
-    const profileData = useSelector((state) => state.profile.profileData.data);
+    const profileData = useSelector((state) => state.profile.profileData);
     const isRTL = I18nManager.isRTL;
-    const dateInput = profileData.birthday;
+
     console.log(profileData)
+    const dateInput = profileData.birthday;
 
 
-    // Convert to Gregorian format
     const gregorianFormatted = new Date(dateInput).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: '2-digit',
     }).replace(',', '').replace(/ /g, '/');
-
     const jalaliDate = jalaali.toJalaali(new Date(dateInput));
-
-
     const jalaliMonthNames = [
         'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد',
         'شهریور', 'مهر', 'آبان', 'آذر',
@@ -36,19 +35,6 @@ function ProfileScreen({navigation}) {
     ];
     const jalaliFormatted = `${jalaliDate.jy}/${jalaliMonthNames[jalaliDate.jm - 1]}/${String(jalaliDate.jd).padStart(2, '0')}`;
 
-    const startTimeStamp =isRTL?"ق.ظ":"AM"
-    const endTimeStamp =isRTL?"ب.ظ":"PM"
-        function convertTo12HourFormat(time) {
-            const [hours, minutes, seconds] = time.split(':');
-            const hourIn24HourFormat = parseInt(hours, 10);
-            const amPm = hourIn24HourFormat < 12 ? startTimeStamp : endTimeStamp
-            ;
-            const adjustedHour = hourIn24HourFormat % 24;
-
-
-            const formattedHour = String(adjustedHour).padStart(2, '0');
-            return `${formattedHour}:${minutes} ${amPm}`;
-        }
 
 
     return (
@@ -61,21 +47,15 @@ function ProfileScreen({navigation}) {
             </ProfileCard>
 
             <ProfileCard headerText={t("bio")}>
-                <Text style={styles.bioText}>
+                <CustomText color={colors.onSurface} size={14} lineHeight={20}>
                     {profileData.bio || "_"}
-                </Text>
+                </CustomText>
             </ProfileCard>
             <ProfileCard headerText={t("working_location")}>
-                <ProfileMap/>
+                {/*<ProfileMap/>*/}
             </ProfileCard>
+            <ProfileWorkingHours workingHours={profileData.workingHours}/>
 
-            <ProfileCard headerText={t("hours")}>
-                <ProfileCardData title={"Sat - Wed"}
-                                 data={profileData.workingHours ? `${convertTo12HourFormat(profileData.workingHours.Saturday.startHour)} - ${convertTo12HourFormat(profileData.workingHours.Saturday.endHour)}` : "_"}/>
-                <ProfileCardData title={"thursday"}
-                                 data={profileData.workingHours ? `${convertTo12HourFormat(profileData.workingHours.Thursday.startHour)} - ${convertTo12HourFormat(profileData.workingHours.Thursday.endHour)}` : "_"}/>
-                <ProfileCardData title={"Fri"} data={t("holiday")}/>
-            </ProfileCard>
 
             <ProfileCard headerText={t("social_media")}>
                 <ProfileCardData title={"telegram"} data={profileData.socialMedias?.Telegram || "_"}/>
@@ -96,17 +76,9 @@ const useThemedStyles = (colors) => {
         profileWrapper: {
             flexDirection: "row",
             width: "100%",
-            // backgroundColor: "red",
             justifyContent: "space-between",
             alignItems: "center"
         },
-        bioText: {
-            color: colors.onSurface,
-            fontSize: 14,
-            lineHeight: 20,
-            fontFamily: "dana-regular",
-            fontWeight: "400"
-        }
     });
 };
 

@@ -1,18 +1,16 @@
-import {BASE_URL, TOKEN_KEY} from "./constant";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {BASE_URL, USER_TIME_ZONE} from "./constant";
 import i18n from "i18next";
 
 
-export const sendRequest = async (url, body, method, need_token, status = '') => {
-    // console.log("body in send request", body.length);
+export const sendRequest = async (url, body, method, token, status = '') => {
     const locale = i18n.language;
     let full_url = BASE_URL + url + (['GET'].includes(method) && Object.keys(body).length ? ('?' + (new URLSearchParams(body)).toString()) : '');
-    let token = await AsyncStorage.getItem(TOKEN_KEY);
     let headers = {
-        locale: locale
+        locale: locale,
+        timezone: USER_TIME_ZONE
     };
 
-    if (need_token) headers['Authorization'] = "Bearer " + token;
+    if (token?.length) headers['Authorization'] = "Bearer " + token;
     if (status !== 'upload') headers['Content-Type'] = 'application/json';
 
     // console.log("full_url in send request", full_url);
@@ -26,13 +24,11 @@ export const sendRequest = async (url, body, method, need_token, status = '') =>
     let options = {
         method,
         headers,
-        ...(['POST', 'PUT'].includes(method) ? {body: (status === 'upload' ? body : JSON.stringify(body))} : {}),
-        // ...(['POST', 'PUT', 'DELETE'].includes(method) ? {body: (status === 'upload' ? body : JSON.stringify(body))} : {}),
+        ...(['POST', 'PUT', 'DELETE'].includes(method) ? {body: (status === 'upload' ? body : JSON.stringify(body))} : {}),
     }
     return await fetch(full_url, options).then(response => {
         return response.json();
     }).then(response => {
-        // console.log("1",method, url);
         return response
     }).catch(error => {
         console.log("2", method, url);
@@ -44,8 +40,30 @@ export const sendRequest = async (url, body, method, need_token, status = '') =>
 };
 
 // separate different method requests
-export const getRequest = async (url, params = {}, token = true) => await sendRequest(url, params, 'GET', token);
-export const postRequest = async (url, params = {}, token = true) => await sendRequest(url, params, 'POST', token);
-export const uploadRequest = async (url, params = {}, token = true) => await sendRequest(url, params, 'POST', token, 'upload');
-export const deleteRequest = async (url, params = {}, token = true) => await sendRequest(url, params, 'DELETE', token);
-export const putRequest = async (url, params = {}, token = true) => await sendRequest(url, params, 'PUT', token);
+export const getRequest = async (url, params = {}, token = "") => await sendRequest(url, params, 'GET', token);
+export const postRequest = async (url, params = {}, token = "") => await sendRequest(url, params, 'POST', token);
+export const deleteRequest = async (url, params = {}, token = "") => await sendRequest(url, params, 'DELETE', token);
+export const putRequest = async (url, params = {}, token = "") => await sendRequest(url, params, 'PUT', token);
+export const uploadRequest = async (url, params = {}, token = "") => await sendRequest(url, params, 'POST', token, 'upload');
+
+
+export const getFullAddress = async (lat,long) =>{
+    const locale = i18n.language;
+    // let full_url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${long}&format=json&accept-language=${locale}`;
+    let full_url = `https://api.neshan.org/v5/reverse?lat=${lat}&lng=${long}&format=json&accept-language=${locale}`;
+    // console.log(full_url);
+    return await fetch(full_url,{
+        method: 'GET',
+        headers:{
+            "Api-Key":"service.4c7af31b20c44b16920cce89483caa15"
+        }
+    }).then(response => {
+        return response.json();
+    }).then(response => {
+        return response
+    }).catch(error => {
+        console.error(
+            'error:', error, '\n'
+        );
+    });
+}

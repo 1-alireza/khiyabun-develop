@@ -1,5 +1,5 @@
 import React, {useRef, useState} from "react";
-import {I18nManager, StyleSheet, Text, View} from "react-native";
+import {I18nManager, Platform, StyleSheet, Text, View} from "react-native";
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
 import BaseLogin from "../../components/BaseLogin";
@@ -7,7 +7,6 @@ import Button from "../../components/Button";
 import gStyles from "../../global-styles/GlobalStyles";
 import Input from "../../components/Input";
 import {DIGIT_REGEX, TOKEN_KEY, UPPERCASE_REGEX} from "../../utils/constant";
-import {postRequest} from "../../utils/sendRequest";
 import {errorHandling} from "../../utils/errorHandling";
 import {userLogin} from "../../redux/actions/loginAction";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,7 +20,10 @@ export const SignInWithPhoneNumber = ({navigation}) => {
         <View style={{alignItems: "center", justifyContent: "center"}}>
             <Text style={styles.textNotAccount}>{t("or")}</Text>
             <Button
-                onPress={() => navigation.navigate('LoginWithMobile')}
+                onPress={() => {
+                    navigation.navigate("LoginWithMobile");
+                    if (Platform.OS !== 'android') window.history.pushState({}, 'LoginWithMobile');
+                }}
                 label={t('login_with_phone_number')}
                 typeButton="full"
                 sizeButton="small"
@@ -34,7 +36,7 @@ export const SignInWithPhoneNumber = ({navigation}) => {
 
 export const EnteredUsernameSection = ({navigation}) => {
     const dispatch = useDispatch();
-    const is_loader = useSelector(state => state.login.is_loading);
+    const is_loading = useSelector(state => state.login.is_loading);
 
     const {t} = useTranslation();
     const {colors} = useTheme();
@@ -52,7 +54,7 @@ export const EnteredUsernameSection = ({navigation}) => {
         has_uppercase: null
     });
     const passwordRef = useRef(null);
-    const [loader, setLoader] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const onChangeUsernameHandler = (value) => {
         if (value.trim().length) {
@@ -96,27 +98,32 @@ export const EnteredUsernameSection = ({navigation}) => {
 
     const correctValues = (username.correct_value && password.entered_value.trim().length);
     const onSignInHandler = async () => {
-        setLoader(true);
+        setLoading(true);
         try {
-            let api = "users/login",
-                body = {
+            let data = {
+                api:"users/login",
+                body:{
                     username:username.entered_value,
                     password:password.entered_value
-            };
-            let data = {api, body}
+                }
+            }
             dispatch(userLogin(data)).then(action => {
                 let response = action.payload;
                 if(response.statusCode === 200){
                     let token = response.data.token;
                     AsyncStorage.setItem(TOKEN_KEY,token);
-                    navigation.navigate("Main")
+                    navigation.navigate("Main");
+                    if (Platform.OS !== 'android') window.history.pushState({}, 'Main');
                 }
-                setLoader(is_loader);
+                else {
+                    errorHandling(response,"error");
+                }
+                setLoading(is_loading);
             });
         }
         catch (e){
             errorHandling(t("default_error"),"error");
-            setLoader(false);
+            setLoading(false);
         }
     }
 
@@ -143,10 +150,12 @@ export const EnteredUsernameSection = ({navigation}) => {
             />
             <View style={{flexDirection:"row",justifyContent:"flex-start",alignItems:"flex-start",width:"100%"}}>
                 <Button
-                    onPress={()=>navigation.navigate("ForgetPassword")}
+                    onPress={()=> {
+                        navigation.navigate("ForgetPassword");
+                        if (Platform.OS !== 'android') window.history.pushState({}, 'ForgetPassword');
+                    }}
                     label={t("forget_password_button")}
                     sizeButton="small"
-                    width={50}
                     typeButton="full"
                     colorButton="transparent"
                     style={styles.forgetPassword}
@@ -158,7 +167,7 @@ export const EnteredUsernameSection = ({navigation}) => {
                 label={t('sign_in')}
                 sizeButton="medium"
                 disabled={!correctValues}
-                showLoader={loader}
+                showLoading={loading}
             />
         </>
     )

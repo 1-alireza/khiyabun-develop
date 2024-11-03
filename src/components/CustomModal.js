@@ -1,9 +1,10 @@
-import {View, StyleSheet, Image, Pressable, Modal, Text} from "react-native"
+import {View, StyleSheet, Pressable,} from "react-native"
 import {useTheme} from "@react-navigation/native";
 import {Overlay} from 'react-native-elements';
 import KhiyabunIcons from "./KhiyabunIcons";
 import Button from "./Button";
 import React from "react";
+import CustomText from "./CustomText";
 
 const CustomModal = ({
                          isVisible,
@@ -20,7 +21,7 @@ const CustomModal = ({
                          cancelButtonText,
                          type = "error",
                          actionCallback,
-                         disabled=false,
+                         disabled = false,
                          cancelCallback,
                          onCloseCallback,
                          onOpenCallback,
@@ -33,14 +34,19 @@ const CustomModal = ({
 
 
     return (
-        <Overlay isVisible={isVisible} onRequestClose={onClose} overlayStyle={[styles.modalStyle, modalClass,]}
+        <Overlay isVisible={isVisible}
+                 onRequestClose={onClose}
+                 overlayStyle={[styles.modalStyle, modalClass,]}
                  onBackdropPress={onClose}
                  animationType={animationType}>
             <View style={styles.modalHeader}>
                 <Pressable style={styles.modalTitle}>
                     <KhiyabunIcons name={titleIcon} size={16}
                                    color={type === "error" ? colors.error : type === "warning" ? colors.warning : colors.info}/>
-                    <Text style={styles.titleText}>{modalTitle}</Text>
+                    <CustomText
+                        size={16} color={colors.onSurfaceHigh} lineHeight={24} weight={'bold'}>
+                        {modalTitle}
+                    </CustomText>
                 </Pressable>
                 {hasCloseIcon && (<Pressable onPress={onClose}>
                     <KhiyabunIcons name={"close-outline"} size={16}
@@ -52,7 +58,7 @@ const CustomModal = ({
                 {modalBody}
             </View>
             <View style={styles.modalFooter}>
-                <Button label={actionButtonText}
+                <Button textWeight={"bold"} label={actionButtonText}
                         sizeButton={"small"}
                         disabled={disabled}
                         style={[styles.actionButton, {backgroundColor: type === "error" ? colors.errorContainer : type === "warning" ? colors.warningContainer : colors.infoContainer},
@@ -61,7 +67,7 @@ const CustomModal = ({
                         width={hasDoubleBtn ? 50 : 100} onPress={actionCallback}
                         isBorder={true} borderColor={colors.primaryOutline}/>
                 {hasDoubleBtn && (
-                    <Button label={cancelButtonText}
+                    <Button textWeight={"bold"} label={cancelButtonText}
                             sizeButton={"small"} style={styles.cancelButton} width={50}
                             styleText={[styles.cancelButtonText, {color: type === "error" ? colors.error : type === "warning" ? colors.warning : colors.info}]}
                             onPress={onClose}/>)}
@@ -75,19 +81,23 @@ const CustomModal = ({
 const useThemedStyles = (colors) => {
     return StyleSheet.create({
         modalHeader: {
-            flexDirection: "row", alignItems: "center", justifyContent: "space-between"
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between"
         },
         modalTitle: {
-            flexDirection: "row", alignItems: "center", justifyContent: "flex-start", gap: 4
-        },
-        titleText: {
-            fontSize: 16, lineHeight: 24, fontFamily: "dana-bold", color: colors.onSurfaceHigh
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            gap: 4
         },
         modalBody: {
             paddingHorizontal: 4, marginVertical: 10
         },
         modalStyle: {
-            backgroundColor: colors.surfaceContainerLowest, padding: 16, borderRadius: 8
+            backgroundColor: colors.surfaceContainerLowest,
+            padding: 16,
+            borderRadius: 8
         },
         modalFooter: {
             flexDirection: "row",
@@ -103,7 +113,9 @@ const useThemedStyles = (colors) => {
             borderColor: colors.errorOutline
         },
         actionButtonText: {
-            fontSize: 14, lineHeight: 20, fontFamily: "dana-regular", color: colors.darkError
+            fontSize: 14,
+            lineHeight: 20,
+            color: colors.darkError
         },
         cancelButton: {
             borderRadius: 8,
@@ -112,7 +124,9 @@ const useThemedStyles = (colors) => {
             alignItems: "center"
         },
         cancelButtonText: {
-            fontWeight: "500", fontSize: 16, lineHeight: 24, fontFamily: "dana-regular", color: colors.error
+            fontSize: 16,
+            lineHeight: 24,
+            color: colors.error
         },
     });
 };

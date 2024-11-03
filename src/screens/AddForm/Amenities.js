@@ -6,6 +6,7 @@ import KhiyabunIcons from "../../components/KhiyabunIcons";
 import React, {useState} from "react";
 import {CheckBox} from "@rneui/themed"
 import AddFormCard from "./AddFormCard";
+import gStyles from "../../global-styles/GlobalStyles";
 
 function Amenities() {
     const {t, i18n} = useTranslation();
@@ -152,7 +153,11 @@ const useThemedStyles = (colors) => {
             alignItems: 'flex-start',
             padding: 8,
             justifyContent: "flex-start"
-        }
+        },
+        title: {
+            fontFamily: gStyles.fontBold.fontFamily,
+            fontSize: 12
+        },
 
     });
 };

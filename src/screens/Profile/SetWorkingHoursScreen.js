@@ -1,227 +1,486 @@
-import React, {useRef, useState} from "react";
-import {Dimensions, Platform, ScrollView, StyleSheet, Text, View} from "react-native";
-import globalStyle from "../../global-styles/GlobalStyles";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
+import React, {useState} from "react";
+import {Dimensions, I18nManager, Platform, ScrollView, StyleSheet, View} from "react-native";
+import ToggleSwitch from "toggle-switch-react-native";
+import {useDispatch, useSelector} from "react-redux";
 import {useTheme} from "@react-navigation/native";
+import globalStyle from "../../global-styles/GlobalStyles";
+import Button from "../../components/Button";
 import {useTranslation} from "react-i18next";
-import DateTimePicker from '@react-native-community/datetimepicker';
-import KhiyabunIcons from "../../components/KhiyabunIcons";
+import TimePicker from "../../components/TimePicker";
+import CustomText from "../../components/CustomText";
+import {updateUserProfile} from "../../redux/actions/profileAction";
+import {errorHandling} from "../../utils/errorHandling";
+import gStyles from "../../global-styles/GlobalStyles";
+import useWebBackButtonHandler from "../../navigation/hardwareBackHandler";
 
-
-const SetWorkingHoursScreen = ({navigation}) => {
+export const PikerTime = (
+    {
+        title,
+        startAction,
+        endAction,
+        switchFunction,
+        isHoliday,
+        hasErrorStart,
+        hasErrorEnd
+    }
+) => {
+    const {colors} = useTheme();
     const {t} = useTranslation();
     const styles = useThemedStyles();
-
-    const [date, setDate] = useState(new Date());
-    const [mode, setMode] = useState('time');
-    const [show, setShow] = useState(false);
-
-    const onChange = (event, selectedDate) => {
-        const currentDate = selectedDate || date;
-        setShow(Platform.OS === 'ios');
-        setDate(currentDate);
-    };
-
-    const showMode = (currentMode) => {
-        setShow(true);
-        setMode(currentMode);
-    };
-
-    const showTimepicker = () => {
-        console.log("line 31 SetWorkingHoursScreen im here");
-        showMode('time');
-    };
-
-
-    const inputRefs = useRef([]);
-
-    const [saturday, setSaturday] = useState("");
-    const [sunday, setSunday] = useState("");
-    const [monday, setMonday] = useState("");
-    const [tuesday, setTuesday] = useState("");
-    const [wednesday, setWednesday] = useState("");
-    const [thursday, setThursday] = useState("");
-    const [friday, setFriday] = useState("");
-
-    const onChangeSaturdayHandler = (value) => {
-        setSaturday(value);
-    }
-    const onChangeSundayHandler = (value) => {
-        setSunday(value);
-    }
-    const onChangeMondayHandler = (value) => {
-        setMonday(value);
-    }
-    const onChangeTuesdayHandler = (value) => {
-        setTuesday(value);
-    }
-    const onChangeWednesdayHandler = (value) => {
-        setWednesday(value);
-    }
-    const onChangeThursdayHandler = (value) => {
-        setThursday(value);
-    }
-    const onChangeFridayHandler = (value) => {
-        setFriday(value);
-    }
-
-    const setProfileHandler = () => {
-        let senData = true;
-        if (senData) {
-            navigation.navigate("SetSocialMedia")
-        }
-    }
-
     return (
         <>
-            <ScrollView style={[globalStyle.container, styles.container]}>
-                <View style={styles.inputWrapper}>
-                    <Input
-                        ref={el => inputRefs.current[0] = el}
-                        label={t("saturday")}
-                        customStyles={styles.input}
-                        type="text"
-                        placeholder="08:00 am - 15:00 pm"
-                        onChangeText={onChangeSaturdayHandler}
-                        value={saturday}
-                        rightIcon="clock-outline"
-                        // onFocus={showTimepicker}
+            <View style={styles.title}>
+                <CustomText>
+                    {title}
+                </CustomText>
+                {switchFunction &&
+                    <View style={styles.switchWrapper}>
+                        <CustomText>
+                            {t("holiday")}
+                        </CustomText>
+                        <ToggleSwitch
+                            isOn={isHoliday}
+                            onToggle={switchFunction}
+                            onColor={colors.primary}
+                            offColor={colors.onSurfaceLowest}
+                            size="medium"
+                        />
+
+                    </View>
+                    // <View style={{flexDirection:"row",gap:5,alignItems:"center",height:"100%"}}>
+                    //     <CheckBox
+                    //         iconRight={true}
+                    //         size={20}
+                    //         checked={isHoliday}
+                    //         onPress={()=>switchFunction(!isHoliday)}
+                    //         iconType="material-community"
+                    //         checkedIcon="checkbox-marked"
+                    //         uncheckedIcon="checkbox-blank-outline"
+                    //         checkedColor={colors.primary}
+                    //         containerStyle ={styles.checkBox}
+                    //         textStyle={styles.checkBoxTitle}
+                    //         title={t("holiday")}
+                    //     />
+                    //
+                    // </View>
+                }
+            </View>
+            <View style={[globalStyle.row, styles.row]}>
+                <View style={[globalStyle.col_6, {paddingHorizontal: 2.5}]}>
+                    <TimePicker
+                        ref={el => {
+                            return el
+                        }}
+                        customStyle={styles.inputWrapper}
+                        placeholder={t("start_time")}
+                        leftIcon="clock-outline"
+                        onTimeChange={startAction}
+                        onRemoveTime={startAction}
+                        isDisabled={isHoliday}
+                        hasError={hasErrorStart}
+                        errorText={hasErrorStart}
                     />
                 </View>
-                <View style={styles.inputWrapper}>
-                    <Input
-                        ref={el => inputRefs.current[1] = el}
-                        label={t("sunday")}
-                        customStyles={styles.input}
-                        type="text"
-                        placeholder="08:00 am - 15:00 pm"
-                        onChangeText={onChangeSundayHandler}
-                        value={sunday}
-                        rightIcon="clock-outline"
+                <View style={[globalStyle.col_6, {paddingHorizontal: 2.5}]}>
+                    <TimePicker
+                        ref={el => {
+                            return el
+                        }}
+                        customStyle={styles.inputWrapper}
+                        placeholder={t("end_time")}
+                        leftIcon="clock-outline"
+                        onTimeChange={endAction}
+                        onRemoveTime={endAction}
+                        isDisabled={isHoliday}
+                        hasError={hasErrorEnd}
+                        errorText={hasErrorEnd}
                     />
                 </View>
-                <View style={styles.inputWrapper}>
-                    <Input
-                        ref={el => inputRefs.current[2] = el}
-                        label={t("monday")}
-                        customStyles={styles.input}
-                        type="text"
-                        placeholder="08:00 am - 15:00 pm"
-                        onChangeText={onChangeMondayHandler}
-                        value={monday}
-                        rightIcon="clock-outline"/>
-                </View>
-                <View style={styles.inputWrapper}>
-                    <Input
-                        ref={el => inputRefs.current[3] = el}
-                        label={t("tuesday")}
-                        customStyles={styles.input}
-                        type="text"
-                        placeholder="08:00 am - 15:00 pm"
-                        onChangeText={onChangeTuesdayHandler}
-                        value={tuesday}
-                        rightIcon="clock-outline"/>
-                </View>
-                <View style={styles.inputWrapper}>
-                    <Input
-                        ref={el => inputRefs.current[4] = el}
-                        label={t("wednesday")}
-                        customStyles={styles.input}
-                        type="text"
-                        placeholder="08:00 am - 15:00 pm"
-                        onChangeText={onChangeWednesdayHandler}
-                        value={wednesday}
-                        rightIcon="clock-outline"/>
-                </View>
-                <View style={styles.inputWrapper}>
-                    <Input
-                        ref={el => inputRefs.current[5] = el}
-                        label={t("thursday")}
-                        customStyles={styles.input}
-                        type="text"
-                        placeholder="08:00 am - 15:00 pm"
-                        onChangeText={onChangeThursdayHandler}
-                        value={thursday}
-                        rightIcon="clock-outline"/>
-                </View>
-                <View style={styles.inputWrapper}>
-                    <Input
-                        ref={el => inputRefs.current[6] = el}
-                        label={t("friday")}
-                        customStyles={styles.input}
-                        type="text"
-                        placeholder="08:00 am - 15:00 pm"
-                        onChangeText={onChangeFridayHandler}
-                        value={friday}
-                        rightIcon="clock-outline"/>
-                </View>
-                {/*<Button*/}
-                {/*    sizeButton="medium"*/}
-                {/*    onPress={showTimepicker}*/}
-                {/*    label={<View style={{flex:1,flexDirection:"row",justifyContent:"space-between",width:"100%"}}>*/}
-                {/*        <Text>8:00 am - 15:00 pm</Text>*/}
-                {/*        <KhiyabunIcons name="clock-outline" size={20}/>*/}
-                {/*    </View>}*/}
-                {/*    styleText={{flex:1,width: "100%"}}*/}
-                {/*/>*/}
-                {show && (
-                    <DateTimePicker
-                        testID="dateTimePicker"
-                        value={date}
-                        mode={mode}
-                        is24Hour={true}
-                        display="default"
-                        onChange={onChange}
-                    />
-                )}
-            </ScrollView>
-            <View style={[globalStyle.container, styles.buttonWrapper]}>
-                <Button
-                    onPress={setProfileHandler}
-                    label={t("continue")}
-                    sizeButton="medium"
-                    typeButton="full"
-                />
             </View>
         </>
     )
 }
 
+const SetWorkingHoursScreen = ({navigation}) => {
+    const {t} = useTranslation();
+    const styles = useThemedStyles();
+    const dispatch = useDispatch();
+    const userToken = useSelector(state => state.login.token);
+    const is_loading = useSelector(state => state.profile.loading);
+    const [loading, setLoading] = useState(false);
+    const [workingHours, setWorkingHours] = useState({
+        Saturday: {
+            startHour: "",
+            endHour: "",
+            isHoliday: false
+        },
+        Sunday: {
+            startHour: "",
+            endHour: "",
+            isHoliday: false
+        },
+        Monday: {
+            startHour: "",
+            endHour: "",
+            isHoliday: false
+        },
+        Tuesday: {
+            startHour: "",
+            endHour: "",
+            isHoliday: false
+        },
+        Wednesday: {
+            startHour: "",
+            endHour: "",
+            isHoliday: false
+        },
+        Thursday: {
+            startHour: "",
+            endHour: "",
+            isHoliday: false
+        },
+        Friday: {
+            startHour: "",
+            endHour: "",
+            isHoliday: false
+        },
+    });
+    const [errors, setErrors] = useState({});
+
+    const handleTimeChange = (day, field, value) => {
+        setWorkingHours(prevState => ({
+            ...prevState,
+            [day]: {
+                ...prevState[day],
+                [field]: value,
+            }
+        }));
+
+        if (value) {
+            let newErrors = Object.fromEntries(
+                Object.entries(errors).filter(([key]) => key !== day)
+            );
+            setErrors(newErrors);
+        }
+    };
+
+    const handleHolidayChange = (day, value) => {
+        setWorkingHours(prevState => ({
+            ...prevState,
+            [day]: {
+                startHour: "",
+                endHour: "",
+                isHoliday: value,
+            }
+        }));
+        if (value) {
+            let newErrors = Object.fromEntries(
+                Object.entries(errors).filter(([key]) => key !== day)
+            );
+            setErrors(newErrors);
+        }
+    };
+    const validateWorkingHours = () => {
+        const newErrors = {};
+        Object.keys(workingHours).forEach(day => {
+            const {startHour, endHour, isHoliday} = workingHours[day];
+            if (!isHoliday) {
+                if (!startHour || !endHour || (startHour && endHour && startHour === endHour)) {
+                    newErrors[day] = {};
+                    if (!startHour) {
+                        newErrors[day].startHour = t("error_start_time");
+                    }
+                    if (!endHour) {
+                        newErrors[day].endHour = t("error_end_time");
+                    }
+                    if (startHour && endHour && startHour === endHour) {
+                        newErrors[day].timeMismatch = t("error_end_mismatch");
+                    }
+                }
+            }
+        });
+        return newErrors;
+    };
+
+    const setTimeWorkHandler = async () => {
+        const validationErrors = validateWorkingHours();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+        setLoading(true);
+        const data = {
+            userData: {
+                workingHours: workingHours
+            },
+            token: userToken
+        };
+        dispatch(updateUserProfile(data)).then(action => {
+            const response = action.payload;
+            console.log("response", response);
+            if (response?.statusCode >= 200 || response?.statusCode < 300) {
+                navigation.navigate("SetSocialMedia");
+                if (Platform.OS !== 'android') window.history.pushState({}, 'SetSocialMedia');
+
+            } else {
+                errorHandling(response, "error");
+            }
+            setLoading(is_loading);
+        });
+    };
+
+    return (
+        <>
+            <ScrollView style={[globalStyle.container, styles.container]}>
+                {Object.keys(workingHours).map(day => (
+                    <PikerTime
+                        key={day}
+                        title={t(day.toLowerCase())}
+                        startAction={(value) => handleTimeChange(day, 'startHour', value)}
+                        endAction={(value) => handleTimeChange(day, 'endHour', value)}
+                        switchFunction={(value) => handleHolidayChange(day, value)}
+                        isHoliday={workingHours[day].isHoliday}
+                        hasErrorStart={errors[day]?.startHour}
+                        hasErrorEnd={errors[day]?.endHour || errors[day]?.timeMismatch}
+                    />
+                ))}
+            </ScrollView>
+            <View style={[globalStyle.container, styles.buttonWrapper]}>
+                <Button onPress={setTimeWorkHandler}
+                        label={t("continue")}
+                        sizeButton="medium"
+                        typeButton="full"
+                        showLoading={loading}
+                />
+            </View>
+        </>
+    );
+
+}
+// const {t} = useTranslation();
+// const styles = useThemedStyles();
+// const dispatch = useDispatch();
+// const userToken = useSelector(state => state.login.token);
+// const is_loading = useSelector(state => state.profile.loading);
+//
+// const [loading, setLoading] = useState(false);
+//
+// const [saturdayTimes, setSaturdayTimes] = useState({
+//     start_time: "",
+//     end_time: "",
+//     is_holiday: false,
+//     start_error: false,
+//     end_error: false
+// })
+//
+// const [saturdayStart, setSaturdayStart] = useState("");
+// const [saturdayStartError, setSaturdayStartError] = useState("");
+// const [saturdayEnd, setSaturdayEnd] = useState("");
+// const [saturdayEndError, setSaturdayEndError] = useState("");
+// const [saturdayHoliday, setSaturdayHoliday] = useState(false);
+//
+// const [sundayStart, setSundayStart] = useState("");
+// const [sundayEnd, setSundayEnd] = useState("");
+// const [sundayHoliday, setSundayHoliday] = useState(false);
+//
+// const [mondayStart, setMondayStart] = useState("");
+// const [mondayEnd, setMondayEnd] = useState("");
+// const [mondayHoliday, setMondayHoliday] = useState(false);
+//
+// const [tuesdayStart, setTuesdayStart] = useState("");
+// const [tuesdayEnd, setTuesdayEnd] = useState("");
+// const [tuesdayHoliday, setTuesdayHoliday] = useState(false);
+//
+// const [wednesdayStart, setWednesdayStart] = useState("");
+// const [wednesdayEnd, setWednesdayEnd] = useState("");
+// const [wednesdayHoliday, setWednesdayHoliday] = useState(false);
+//
+// const [thursdayStart, setThursdayStart] = useState("");
+// const [thursdayEnd, setThursdayEnd] = useState("");
+// const [thursdayHoliday, setThursdayHoliday] = useState(false);
+//
+// const [fridayStart, setFridayStart] = useState("");
+// const [fridayEnd, setFridayEnd] = useState("");
+// const [fridayHoliday, setFridayHoliday] = useState(false);
+//
+// const setTimeWorkHandler = async () => {
+//     setLoading(true);
+//     let data = {
+//         userData: {
+//             workingHours: {
+//                 Saturday: {
+//                     startHour: saturdayStart,
+//                     endHour: saturdayEnd,
+//                     isHoliday: saturdayHoliday,
+//                 },
+//                 Sunday: {
+//                     startHour: sundayStart,
+//                     endHour: sundayEnd,
+//                     isHoliday: sundayHoliday,
+//                 },
+//                 Monday: {
+//                     startHour: mondayStart,
+//                     endHour: mondayEnd,
+//                     isHoliday: mondayHoliday,
+//                 },
+//                 Tuesday: {
+//                     startHour: tuesdayStart,
+//                     endHour: tuesdayEnd,
+//                     isHoliday: tuesdayHoliday,
+//                 },
+//                 Wednesday: {
+//                     startHour: wednesdayStart,
+//                     endHour: wednesdayEnd,
+//                     isHoliday: wednesdayHoliday,
+//                 },
+//                 Thursday: {
+//                     startHour: thursdayStart,
+//                     endHour: thursdayEnd,
+//                     isHoliday: thursdayHoliday,
+//                 },
+//                 Friday: {
+//                     startHour: fridayStart,
+//                     endHour: fridayEnd,
+//                     isHoliday: fridayHoliday,
+//                 }
+//             }
+//         },
+//         token: userToken
+//     };
+//     dispatch(updateUserProfile(data)).then(action => {
+//         console.log("is_loading", is_loading)
+//         let response = action.payload;
+//         if (response?.statusCode === 200) {
+//  navigation.navigate("SetSocialMedia");
+//                 if (Platform.OS !== 'android') window.history.pushState({}, 'SetSocialMedia');
+//         } else {
+//             errorHandling(response, "error");
+//         }
+//         setLoading(is_loading);
+//     });
+// }
+//
+// return (
+//     <>
+//         <ScrollView style={[globalStyle.container, styles.container]}>
+//             <PikerTime
+//                 title={t("saturday")}
+//                 startAction={setSaturdayStart}
+//                 endAction={setSaturdayEnd}
+//                 switchFunction={setSaturdayHoliday}
+//                 isHoliday={saturdayHoliday}
+//                 hasErrorStart={true}
+//                 hasErrorEnd={true}
+//             />
+//             <PikerTime
+//                 title={t("sunday")}
+//                 startAction={setSundayStart}
+//                 endAction={setSundayEnd}
+//                 switchFunction={setSundayHoliday}
+//                 isHoliday={sundayHoliday}
+//             />
+//             <PikerTime
+//                 title={t("monday")}
+//                 startAction={setMondayStart}
+//                 endAction={setMondayEnd}
+//                 switchFunction={setMondayHoliday}
+//                 isHoliday={mondayHoliday}
+//             />
+//             <PikerTime
+//                 title={t("tuesday")}
+//                 startAction={setTuesdayStart}
+//                 endAction={setTuesdayEnd}
+//                 switchFunction={setTuesdayHoliday}
+//                 isHoliday={tuesdayHoliday}
+//             />
+//             <PikerTime
+//                 title={t("wednesday")}
+//                 startAction={setWednesdayStart}
+//                 endAction={setWednesdayEnd}
+//                 switchFunction={setWednesdayHoliday}
+//                 isHoliday={wednesdayHoliday}
+//             />
+//             <PikerTime
+//                 title={t("thursday")}
+//                 startAction={setThursdayStart}
+//                 endAction={setThursdayEnd}
+//                 switchFunction={setThursdayHoliday}
+//                 isHoliday={thursdayHoliday}
+//             />
+//             <PikerTime
+//                 title={t("friday")}
+//                 startAction={setFridayStart}
+//                 endAction={setFridayEnd}
+//                 switchFunction={setFridayHoliday}
+//                 isHoliday={fridayHoliday}
+//             />
+//
+//         </ScrollView>
+//         <View style={[globalStyle.container, styles.buttonWrapper]}>
+//             <Button
+//                 onPress={setTimeWorkHandler}
+//                 label={t("continue")}
+//                 sizeButton="medium"
+//                 typeButton="full"
+//                 showLoading={loading}
+//             />
+//         </View>
+//     </>
+// )
+
+
 const useThemedStyles = () => {
+    const isRTL = I18nManager.isRTL;
     const {colors} = useTheme();
+
     return StyleSheet.create({
         container: {
             paddingVertical: 16,
             height: Dimensions.get('window').height
         },
-        textPhoneVisibility: {
-            fontSize: 16,
-            fontWeight: "500",
-            lineHeight: 24,
-            color: colors.onSurfaceHigh
-        },
-        questionVisibility: {
-
-            fontSize: 12,
-            color: colors.onSurfaceLow
-        },
-        wrapperEnteredInfo: {
-            padding: 16
+        row: {
+            flexDirection: isRTL ? "row-reverse" : "row",
         },
         inputWrapper: {
-            marginBottom: 12
-        },
-        input: {
-            width: "100%"
+            // marginBottom: 12,
         },
         buttonWrapper: {
             flex: undefined,
-            justifyContent: 'flex-end',
             marginVertical: 10,
-            backgroundColor: "transparent"
+            backgroundColor: "transparent",
+            height: 45
+        },
+        title: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: 5,
+            marginBottom: 4,
+            marginTop: 5
+        },
+        switchWrapper: {
+            flexDirection: "row",
+            alignItems: "center",
+            height: "100%",
+            gap: 5,
+        },
+        checkBox: {
+            backgroundColor: "transparent",
+            borderWidth: 0,
+            padding: 0,
+            margin: 0,
+            marginRight: 0,
+            marginLeft: 0,
+            alignItems: "center"
+        },
+        checkBoxTitle: {
+            ...gStyles.fontBold,
+            color: colors.onSurfaceLow,
+            marginHorizontal: 0,
+            fontWeight: "normal"
         }
     });
 };
 
 export default SetWorkingHoursScreen;
+

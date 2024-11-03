@@ -1,6 +1,6 @@
-import {useTranslation} from "react-i18next";
-import {useTheme} from "@react-navigation/native";
-import {I18nManager, StyleSheet, Text} from "react-native";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "@react-navigation/native";
+import { I18nManager, StyleSheet, Text } from "react-native";
 import {
     Menu,
     MenuOptions,
@@ -9,55 +9,33 @@ import {
 } from 'react-native-popup-menu';
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import React from "react";
+import gStyles from "../../global-styles/GlobalStyles";
+import CustomMenu from "../../components/customMenu";
 
 export default function CheckListHeader() {
-    const {t, i18n} = useTranslation();
-    const {colors} = useTheme();
-    const styles = useThemedStyles(colors)
+    const { t, i18n } = useTranslation();
+    const { colors } = useTheme();
+    const menuItems = [
+        {
+            text: "sort_by_date",
+            onSelect: () => console.log("createDate"),
+            icon: "calender-outline"
+        },
+        {
+            text: "sort_by_title",
+            onSelect: () => console.log("title"),
+            icon: "small-caps-outline"
+        },
+    ];
 
+
+    const triggerIcon = {
+        name: "sort-descending-outline",
+        size: 20
+    }
     return (
-        <Menu>
-            <MenuTrigger>
-                <KhiyabunIcons name={"sort-descending-outline"} size={20} color={colors.onSurface}/>
-            </MenuTrigger>
-            <MenuOptions optionsContainerStyle={styles.popUp}>
-                <MenuOption style={styles.popUpOption} onSelect={() => console.log("item")}>
-                    <KhiyabunIcons name={"calender-outline"} size={20} color={colors.onSurfaceHigh}/>
-                    <Text style={styles.popUpOptionText}>{t("sort_by_date")}</Text>
-                </MenuOption>
-                <MenuOption style={styles.popUpOption} onSelect={() => console.log("item")}>
-                    <KhiyabunIcons name={"small-caps-outline"} size={20} color={colors.onSurfaceHigh}/>
-                    <Text style={styles.popUpOptionText}>{t("sort_by_title")}</Text>
-                </MenuOption>
-            </MenuOptions>
-        </Menu>
+        <CustomMenu items={menuItems} triggerIcon={triggerIcon} />
     )
 }
 
-const useThemedStyles = (colors, isRtl) => {
-    return StyleSheet.create({
-        popUp: {
-            borderRadius: 8,
-            backgroundColor: colors.surfaceContainerLowest,
-            width:"55%"
-        },
-        popUpOption: {
-            flexDirection: "row",
-            alignItems: 'center',
-            justifyContent: "flex-start",
-            height: 57,
-            gap: 8,
-            borderBottomColor: colors.outlineSurface,
-            borderBottomWidth: 1,
-            paddingVertical: 8,
-            paddingHorizontal: 12
 
-        },
-        popUpOptionText: {
-            fontSize: 16,
-            lineHeight: 24,
-            fontFamily: 'dana-regular',
-            color: colors.onSurfaceHigh
-        },
-    });
-};

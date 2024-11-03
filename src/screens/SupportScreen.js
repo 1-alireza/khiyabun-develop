@@ -1,10 +1,11 @@
 import {TextInput, StyleSheet, Text, View, Pressable, Linking, Alert} from "react-native";
-import {useCallback, useState} from "react";
+import React, {useCallback, useState} from "react";
 import CustomDropdown from "../components/CustomDropdown";
 import {useTheme} from "@react-navigation/native";
 import KhiyabunIcons from "../components/KhiyabunIcons";
 import {useTranslation} from "react-i18next";
-
+import gStyles from "../global-styles/GlobalStyles"
+import CustomText from "../components/CustomText";
 
 function SupportScreen() {
     const {t, i18n} = useTranslation();
@@ -27,8 +28,12 @@ function SupportScreen() {
         <View style={styles.mainView}>
 
             {supportSubjectSelected &&( <View style={styles.supportSubjectWrapper}>
-                <Text style={styles.supportSubject}>{t("subject")} :</Text>
-                <Text style={styles.supportSubjectText}>{supportSubject}</Text>
+                <CustomText size={14} lineHeight={20} weight={"bold"} color={colors.onSurfaceLow}>
+                    {t("subject")} :
+                </CustomText>
+                <CustomText size={14} lineHeight={20}  color={colors.onSurface}>
+                    {supportSubject}
+                </CustomText>
             </View>)}
             {supportSubjectSelected &&(
                 <View style={styles.supportInputWrapper}>
@@ -91,11 +96,11 @@ const useThemedStyles = (colors) => {
             color: colors.onSurfaceLow,
             fontSize: 14,
             lineHeight: 20,
-            fontFamily: "dana-regular",
+            fontFamily: gStyles.fontBold.fontFamily,
         },
         supportSubjectText: {
             color: colors.onSurface,
-            fontFamily: "dana-bold",
+            fontFamily: gStyles,
             fontSize: 14,
             lineHeight: 20,
 

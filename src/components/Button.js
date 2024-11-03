@@ -1,6 +1,7 @@
 import React from "react";
-import {ActivityIndicator, Pressable, StyleSheet, Text} from "react-native";
+import {ActivityIndicator, Pressable, StyleSheet} from "react-native";
 import {useTheme} from "@react-navigation/native";
+import CustomText from "./CustomText";
 
 const Button = (
     {
@@ -9,13 +10,14 @@ const Button = (
         typeButton = 'full',
         sizeButton = 'large',
         colorButton = 'primary',
-        isBorder= false,
-        borderColor= "light",
+        isBorder = false,
+        borderColor = "light",
         width = 100,
         disabled,
         style,
         styleText,
-        showLoader
+        showLoading,
+        textWeight
     }) => {
     const {colors} = useTheme();
     const styles = useThemedStyles(colors);
@@ -27,27 +29,22 @@ const Button = (
     if (colorButton === 'primary') {
         classButton.push(styles.bgPrimary);
         classText.push(styles.textWhite);
-    }
-    else if(colorButton === 'dark'){
+    } else if (colorButton === 'dark') {
         classButton.push(styles.bgDarkPrimary);
-        classText.push(classText,styles.textWhite);
-    }
-    else if(colorButton === "light") {
+        classText.push(classText, styles.textWhite);
+    } else if (colorButton === "light") {
         classButton.push(styles.bgPrimaryContainer);
         classText.push(styles.textDarkPrimary);
-    }
-    else {
+    } else {
         classButton.push(styles.bgTransparent);
         classText.push(styles.textDarkPrimary);
 
     }
     if (sizeButton === 'small') {
         classText.push(styles.smallText);
-    }
-    else if (sizeButton === 'medium') {
+    } else if (sizeButton === 'medium') {
         classText.push(styles.mediumText);
-    }
-    else {
+    } else {
         classText.push(styles.largeText);
     }
 
@@ -55,15 +52,12 @@ const Button = (
         classButton.push(styles.circleCommonStyles);
         if (sizeButton === 'small') {
             classButton.push(styles.circleSmall)
-        }
-        else if (sizeButton === 'medium') {
+        } else if (sizeButton === 'medium') {
             classButton.push(styles.circleMedium)
-        }
-        else {
+        } else {
             classButton.push(styles.circleLarge)
         }
-    }
-    else {
+    } else {
         classButton.push(styles.commonStyles);
         classButton.push({width: width + '%'});
         if (sizeButton === 'small') {
@@ -75,19 +69,18 @@ const Button = (
         }
 
     }
-    if(isBorder){
-        if(borderColor === "dark"){
+    if (isBorder) {
+        if (borderColor === "dark") {
             classButton.push(styles.borderDarkPrimary);
-        }
-        else {
+        } else {
             classButton.push(styles.borderPrimaryOutline);
         }
     }
-    if(style){
+    if (style) {
         classButton.push(style)
     }
-    if(styleText){
-        classText = [...classText,styleText]
+    if (styleText) {
+        classText = [...classText, styleText]
     }
 
     const onPressHandler = () => {
@@ -105,45 +98,46 @@ const Button = (
                 styles.wrapper,
                 classButton,
                 {
-                    opacity: disabled ? .5: pressed ? .8: 1
+                    opacity: disabled ? .5 : pressed ? .8 : 1
                 }
             ]}
-            // style={classButton}
             disabled={disabled}
             onPress={onPressHandler}
+            // style={classButton}
             // android_ripple={{
             //     color: rippleColor,
             // }}
         >
-            <Text style={classText}>{label}</Text>
-            {showLoader &&
-            <ActivityIndicator
-                color={colors.primary}
-                style={{
-                    position: "absolute",
-                    borderRadius: 50,
-                    backgroundColor: colors.primaryContainer
-                }}/>
+            <CustomText
+                weight={textWeight}
+                customStyle={classText}>
+                {label}
+            </CustomText>
+            {showLoading &&
+                <ActivityIndicator
+                    color={colors.primary}
+                    style={{
+                        position: "absolute",
+                        borderRadius: 50,
+                        backgroundColor: colors.primaryContainer
+                    }}/>
             }
-
         </Pressable>
     )
 }
 const useThemedStyles = (colors) => {
 
     return StyleSheet.create({
-        wrapper:{
+        wrapper: {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            position:"relative"
+            position: "relative"
         },
         text: {
-            // fontFamily: 'iran-sans',
-            fontFamily: 'dana-regular',
             textAlign: 'center',
             alignItems: 'center',
-            justifyContent:"center"
+            justifyContent: "center"
         },
         textWhite: {
             color: colors.white
@@ -200,16 +194,16 @@ const useThemedStyles = (colors) => {
             padding: 16
         },
 
-        bgTransparent:{
+        bgTransparent: {
             backgroundColor: "transparent"
         },
-        bgPrimary:{
+        bgPrimary: {
             backgroundColor: colors.primary
         },
-        bgDarkPrimary:{
+        bgDarkPrimary: {
             backgroundColor: colors.darkPrimary
         },
-        bgPrimaryContainer:{
+        bgPrimaryContainer: {
             backgroundColor: colors.primaryContainer
         },
 

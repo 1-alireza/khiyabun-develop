@@ -7,7 +7,7 @@ export default function NoTeam() {    const {t, i18n} = useTranslation();
     const styles = useThemedStyles(colors)
 
     return (
-        <Text>
+        <Text >
             {t("no_team_warning")}
         </Text>
     )

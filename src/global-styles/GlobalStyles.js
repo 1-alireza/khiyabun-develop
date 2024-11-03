@@ -1,15 +1,14 @@
-import {StyleSheet, StatusBar} from "react-native";
-import i18n from "i18next";
+import {StyleSheet} from "react-native";
 
 export default StyleSheet.create({
     fontMain:{
-        fontFamily: "dana-regular"
+        fontFamily: "iran-yekan"
     },
     fontBold:{
-        fontFamily: "dana-bold"
+        fontFamily: "iran-yekan-bold"
     },
     danaPersianNumber: {
-        fontFamily: "dana-persian-num"
+        fontFamily: "iran-yekan"
     },
     container: {
         flex: 1,
@@ -91,6 +90,23 @@ export default StyleSheet.create({
         flexShrink: 0,
         flexBasis: "auto",
         width: "100%"
+    },
+    inputContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderRadius: 8,
+        height: 48,
+        justifyContent:"flex-start",
+        paddingVertical:5,
+        paddingHorizontal:10
+    },
+    input:{
+        flex: 1,
+        height: "100%",
+        fontFamily: "iran-yekan",
+        alignItems:"center"
     }
 
 })

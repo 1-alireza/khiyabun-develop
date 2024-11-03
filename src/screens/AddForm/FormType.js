@@ -3,6 +3,7 @@ import {I18nManager, ScrollView, StyleSheet, View} from "react-native";
 import {ButtonGroup} from "@rneui/themed";
 import {useState} from "react";
 import {useTranslation} from "react-i18next";
+import gStyles from "../../global-styles/GlobalStyles";
 
 function FormScreen() {
     const {t, i18n} = useTranslation();
@@ -49,7 +50,8 @@ const useThemedStyles = (colors) => {
         buttonText: {
             fontSize: 12,
             lineHeight: 16,
-            color: colors.onPrimaryContainer
+            color: colors.onPrimaryContainer,
+            fontFamily:gStyles.fontMain.fontFamily
         },
         normalButton: {
             backgroundColor: colors.surfaceContainerLowest,

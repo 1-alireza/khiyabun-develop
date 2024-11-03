@@ -1,105 +1,228 @@
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import {Pressable, StyleSheet, Text, View} from "react-native";
+import {I18nManager, Pressable, StyleSheet, Text, View} from "react-native";
 import Sheet from "../../components/Sheet";
-import React from "react";
+import React, {useState} from "react";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
 import Button from "../../components/Button";
-import {log} from "expo/build/devtools/logger";
+import jalaali from "jalaali-js";
+import {putRequest} from "../../utils/sendRequest";
+import {errorHandling} from "../../utils/errorHandling";
+import {useSelector} from "react-redux";
+import CustomText from "../../components/CustomText";
+import CustomModal from "../../components/CustomModal";
 
-const RequestDetailSheet = ({isVisible, onClose, item}) => {
+const RequestDetailSheet = ({isVisible, onClose, item, callBack}) => {
+    if (!item) return
+    console.log(item)
+    const [isCancelModalVisible, setIsCancelModalVisible] = useState(false)
     const {t, i18n} = useTranslation();
     const {colors} = useTheme();
     const styles = useThemedStyles(colors)
+    const startDate = new Date(item.startTime);
+    const endDate = new Date(item.endTime);
+    const isRTL = I18nManager.isRTL;
+    const userToken = useSelector(state => state.login.token);
+
+    const getJalaliDate = (date) => {
+        console.log(date)
+        const jalaliDate = jalaali.toJalaali(date);
+        const dayJalali = jalaliDate.jd;
+        const monthJalali = getJalaliMonthName(jalaliDate.jm);
+        const yearJalali = jalaliDate.jy;
+        return `${dayJalali} ${monthJalali} ${yearJalali}`;
+    }
+    let startJalaliDate = getJalaliDate(startDate)
+    let endJalaliDate = getJalaliDate(endDate)
+
+    function getJalaliMonthName(monthNumber) {
+        const monthNames = [
+            "فروردین", "اردیبهشت", "خرداد", "تیر",
+            "مرداد", "شهریور", "مهر", "آبان",
+            "آذر", "دی", "بهمن", "اسفند"
+        ];
+        return monthNames[monthNumber - 1];
+    }
+
+    const options = {
+        day: '2-digit', // Day of the month (e.g., 16)
+        month: 'short', // Short month name (e.g., Nov)
+        year: 'numeric', // Full year (e.g., 2023)
+        locale: 'en-US', // Set the locale to Iranian Persian
+    };
+    const formattedStartDate = startDate.toLocaleString('en-US', options);
+    const formattedEndDate = endDate.toLocaleString('en-US', options);
+
+    const toggleCancelModal = () => setIsCancelModalVisible(!isCancelModalVisible);
+
+    const RequestInfoSheetFooter = () => {
+        return (
+            <>
+                {item.workRequestStatus === "PENDING" ? (
+                    <View style={styles.footerContainer}>
+                        <Button label={t("cancel_note")} sizeButton={"medium"} style={styles.selectButton}
+                                styleText={styles.selectButtonText} width={90}
+                                isBorder={true} borderColor={colors.primaryOutline} onPress={toggleCancelModal}/>
+                    </View>
+                ) : ""}
+            </>
+
+        )
+    }
+
     const RequestLocations = () => {
         item.locations.map((location) => {
 
         })
     }
+
+    const cancelRequest = async () => {
+        try {
+            let res = await putRequest(`work_request/cancel?id=${item.id}`, {}, userToken)
+            console.log("CANCELED REQ ", res)
+            if (res.statusCode === 200) {
+                errorHandling(res, "confirm")
+            } else {
+                errorHandling(res, "warning")
+
+            }
+        } catch (e) {
+            errorHandling(res, "error")
+
+        } finally {
+            toggleCancelModal()
+            onClose()
+            callBack()
+
+        }
+    }
+
+    const CancelModal = () => {
+        return (
+            <CustomText size={14} lineHeight={24} color={colors.onSurfaceHigh}>
+                {t("cancel_request_warning")}
+            </CustomText>
+        )
+    }
+
+
     return (
-        <Sheet isOpen={isVisible} contentWrapperStyle={styles.modal} fitContent={true} onClose={onClose}
-               snapPoint={500}>
-            <View style={styles.sheetHeader}>
-                <Text style={styles.sheetHeaderText}>{t(item.type + " request")}</Text>
-            </View>
-            <View style={styles.sheetBody}>
-                <View style={styles.requestInfo}>
-                    <Text style={styles.dataTitleText}>
-                        Policy
-                    </Text>
-                    <Text style={styles.dataText}>
-                        {item.type}
-                    </Text>
-                </View>
-                <View style={styles.requestInfo}>
-                    <Text style={styles.dataTitleText}>
-                        Date
-                    </Text>
-                    <Text style={styles.dataText}>
-                        {item.date}
-                    </Text>
-                </View>
-                {item.type !== "Business trip" && (
-                    <View style={styles.requestInfo}>
-                        <Text style={styles.dataTitleText}>
-                            Time
-                        </Text>
-                        <Text style={styles.dataText}>
-                            {item.time}
-                        </Text>
-                    </View>
-                )}
+        <>
+            <Sheet isOpen={isVisible}
+                   contentWrapperStyle={styles.modal}
+                   fitContent={true}
+                   onClose={onClose}
+                   snapPoint={500}
+                   footerComponent={<RequestInfoSheetFooter/>}
+            >
+                <View style={styles.sheetHeader}>
 
-                {item.type === "Business trip" && (
-                    <View style={styles.locationWrapper}>
-                        {item.locations.map((location) => (
-                            <View style={styles.location}>
-                                <KhiyabunIcons name={"pin-drop-outline"} color={colors.darkPrimary}/>
-                                <Text style={styles.locationText}>{location}</Text>
+                    <CustomText lineHeight={16} weight={"bold"}
+                                color={colors.onSurface}>{item.workRequestType + " " + t("request")}</CustomText>
+                </View>
+                <View style={styles.sheetBody}>
+                    <View style={styles.requestInfo}>
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurfaceLow}>{t("request_type")}</CustomText>
+
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurface}>{item.workRequestType}</CustomText>
+                    </View>
+                    <View style={styles.requestInfo}>
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurfaceLow}>{t("start_date")}</CustomText>
+
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurface}>{isRTL ? startJalaliDate : formattedStartDate}</CustomText>
+                    </View>
+                    <View style={styles.requestInfo}>
+
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurfaceLow}>{t("finish_date")}</CustomText>
+
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurface}>{isRTL ? endJalaliDate : formattedEndDate}</CustomText>
+
+                    </View>
+                    {item.workRequestType === "مرخصی" || item.workRequestType === "Time off" && (
+                        item.isDaily ? (
+                            <View style={styles.requestInfo}>
+                                <CustomText lineHeight={20} size={14}
+                                            color={colors.onSurfaceLow}>{t("duration")}</CustomText>
+                                <CustomText lineHeight={20} size={14}
+                                            color={colors.onSurface}>{item.isDaily ? t("full_day") : "2 hours"}</CustomText>
                             </View>
-                        ))
-                        }
-                    </View>
 
-                )}
+                        ) : ""
 
-                <View style={styles.requestInfo}>
-                    <Text style={styles.dataTitleText}>
-                        Total time requested
-                    </Text>
-                    <Text style={styles.dataText}>
-                        {item.totalTimeRequested}
-                    </Text>
-                </View>
-                <View style={styles.requestInfo}>
-                    <Text style={styles.dataTitleText}>
-                        Requested status
-                    </Text>
-                    <Text
-                        style={item.status === "Pending" ? styles.pendingStatus : item.status === "Approved" ? styles.ApprovedStatus : styles.DeclinedStatus}>
-                        {item.status}
-                    </Text>
-                </View>
-                {item.type !== "Business trip" && (
+                    )}
+
+                    {item.type === "Business trip" && (
+                        <View style={styles.locationWrapper}>
+                            {item.locations.map((location) => (
+                                <View style={styles.location}>
+                                    <KhiyabunIcons name={"pin-drop-outline"} color={colors.darkPrimary}/>
+                                    <CustomText lineHeight={16} size={12}
+                                                color={colors.darkPrimary}>{location}</CustomText>
+                                </View>
+                            ))
+                            }
+                        </View>
+
+                    )}
+
                     <View style={styles.requestInfo}>
-                        <Text style={styles.dataTitleText}>
-                            Approved by
-                        </Text>
-                        <Text style={styles.dataText}>
-                            {item.ApprovedBy}
+
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurfaceLow}>{t("total_time_requested")}</CustomText>
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurface}>{item.numberOfWorkingHours + t("hours")}</CustomText>
+
+                    </View>
+                    <View style={styles.requestInfo}>
+                        <CustomText lineHeight={20} size={14}
+                                    color={colors.onSurfaceLow}>{t("request_status")}</CustomText>
+                        <Text
+                            style={item.workRequestStatus === "workRequestStatus" ? styles.workRequestStatus : item.status === "Approved" ? styles.ApprovedStatus : styles.DeclinedStatus}>
+                            {item.workRequestStatus}
                         </Text>
                     </View>
-                )}
+                    {item.type !== "Business trip" && item.workRequestStatus !== "PENDING" +
+                        "" && (
+                            <View style={styles.requestInfo}>
+                                <CustomText lineHeight={20} size={14}
+                                            color={colors.onSurfaceLow}>Approved by</CustomText>
+                                <CustomText lineHeight={20} size={14}
+                                            color={colors.onSurface}>{item.ApprovedBy || "_"}</CustomText>
 
-            </View>
-            {item.status === "pending" && (
-                <Button label={t("cancel_note")} sizeButton={"medium"} style={styles.selectButton}
-                        styleText={styles.selectButtonText} width={100}
-                        isBorder={true} borderColor={colors.primaryOutline} onPress={() => console.log("dfghj")}/>
-            )}
+                            </View>
+                        )}
 
-        </Sheet>
+                </View>
+                <View style={styles.sheetBody}>
+                    <View style={styles.requestInfo}>
+                        <CustomText customStyle={{textAlign: "justify"}} lineHeight={20} size={14}
+                                    color={colors.onSurfaceLow}>{t("note")} : <CustomText lineHeight={20} size={14}
+                                                                                          color={colors.onSurface}>{item.note}
+                        </CustomText>
+                        </CustomText>
+                    </View>
 
+
+                </View>
+
+            </Sheet>
+            <CustomModal type={"warning"}
+                         isVisible={isCancelModalVisible}
+                         onClose={toggleCancelModal}
+                         width={80}
+                         cancelButtonText={t("cancel")}
+                         actionButtonText={t("confirm")}
+                         hasCloseIcon={true}
+                         modalBody={<CancelModal/>}
+                         modalTitle={t("delete_note")}
+                         actionCallback={cancelRequest}/>
+        </>
 
     )
 
@@ -118,9 +241,9 @@ const useThemedStyles = (colors) => {
             width: "100%",
             backgroundColor: colors.surface,
             borderRadius: 8,
-            paddingVertical: 8
+            paddingVertical: 8,
+            marginBottom: 16
         },
-
         sheetHeader: {
             backgroundColor: colors.surfaceContainerLowest,
             marginHorizontal: 16,
@@ -128,16 +251,17 @@ const useThemedStyles = (colors) => {
             justifyContent: "center",
             alignItems: "center"
         },
-        sheetHeaderText: {
-            paddingHorizontal: 16,
-            color: colors.onSurface,
-            fontFamily: "dana-bold",
-            lineHeight: 24
-        },
         requestInfo: {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
+            paddingVertical: 8,
+            paddingHorizontal: 16
+        },
+        noteInfo: {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
             paddingVertical: 8,
             paddingHorizontal: 16
         },
@@ -219,15 +343,20 @@ const useThemedStyles = (colors) => {
             backgroundColor: colors.errorOutline,
             justifyContent: "center",
             alignItems: "center",
-            marginVertical: 10
+            marginBottom: 10,
+
         },
         selectButtonText: {
             fontWeight: "500",
             fontSize: 16,
             lineHeight: 24,
-            fontFamily: "dana-regular",
             color: colors.darkError
         },
+        footerContainer: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center"
+        }
 
 
     });

@@ -1,63 +1,41 @@
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import {StyleSheet, Text} from "react-native";
-import {
-    Menu,
-    MenuOptions,
-    MenuOption,
-    MenuTrigger,
-} from 'react-native-popup-menu';
-import KhiyabunIcons from "../../components/KhiyabunIcons";
+import {StyleSheet} from "react-native";
 import React from "react";
+import CustomMenu from "../../components/customMenu";
+import {changeNoteSortByState} from "../../redux/slices/NoteSortBy";
+import {useDispatch, useSelector} from "react-redux";
 
-export default function NoteScreenHeader() {
+export default function NoteScreenHeader({test}) {
+
     const {t, i18n} = useTranslation();
     const {colors} = useTheme();
-    const styles = useThemedStyles(colors)
+    const dispatch = useDispatch();
+    const changeSort=(sortBy)=>{
+        dispatch(changeNoteSortByState(sortBy));
+    }
+
+    const menuItems = [
+        {
+            text: "sort_by_date",
+            onSelect: ()=>changeSort("createDate"),
+            icon: "calender-outline"
+        },
+        {
+            text: "sort_by_title",
+            onSelect: ()=>changeSort("title"),
+            icon: "small-caps-outline"
+        },
+    ];
+
+
+    const triggerIcon={
+        name:"sort-descending-outline",
+        size:20
+    }
 
     return (
-        <Menu>
-            <MenuTrigger customStyles={triggerOuterWrapper = {backgroundColor: "black"}}>
-                <KhiyabunIcons name={"sort-descending-outline"} size={20} color={colors.onSurface}/>
-            </MenuTrigger>
-            <MenuOptions optionsContainerStyle={styles.popUp}>
-                <MenuOption style={styles.popUpOption} onSelect={() => console.log("item")}>
-                    <KhiyabunIcons name={"calender-outline"} size={20} color={colors.onSurfaceHigh}/>
-                    <Text style={styles.popUpOptionText}>{t("sort_by_date")}</Text>
-                </MenuOption>
-                <MenuOption style={styles.popUpOption} onSelect={() => console.log("item")}>
-                    <KhiyabunIcons name={"small-caps-outline"} size={20} color={colors.onSurfaceHigh}/>
-                    <Text style={styles.popUpOptionText}>{t("sort_by_title")}</Text>
-                </MenuOption>
-            </MenuOptions>
-        </Menu>
+        <CustomMenu items={menuItems} triggerIcon={triggerIcon}/>
     )
 }
 
-const useThemedStyles = (colors) => {
-    return StyleSheet.create({
-        popUp: {
-            borderRadius: 8,
-            backgroundColor: colors.surfaceContainerLowest,
-            width: "55%"
-        },
-        popUpOption: {
-            flexDirection: "row",
-            alignItems: 'center',
-            justifyContent: "flex-start",
-            height: 57,
-            gap: 8,
-            borderBottomColor: colors.outlineSurface,
-            borderBottomWidth: 1,
-            paddingVertical: 8,
-            paddingHorizontal: 12
-
-        },
-        popUpOptionText: {
-            fontSize: 16,
-            lineHeight: 24,
-            fontFamily: 'dana-regular',
-            color: colors.onSurfaceHigh
-        },
-    });
-};

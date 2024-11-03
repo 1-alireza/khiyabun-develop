@@ -1,7 +1,7 @@
 import Card from "../../components/Card";
 import {useTranslation} from "react-i18next";
 import {useTheme} from "@react-navigation/native";
-import {StyleSheet, View, Text} from "react-native";
+import {StyleSheet, View, Text, Platform} from "react-native";
 import FlagStatus from "./FlagStatus";
 import FlagsCategory from "./FlagsCategory";
 import FlagTitle from "./FlagTitle";
@@ -21,13 +21,15 @@ export default function AddFlagScreen({navigation}) {
                     <FlagStatus/>
                     <FlagsCategory/>
                     <FlagTitle/>
-                    <FlagMap/>
+                    {/*<FlagMap/>*/}
                 </Card>
 
             </View>
             <Button
-                onPress={() =>
-                    navigation.navigate("AddedPlace")}
+                onPress={() => {
+                    navigation.navigate("AddedPlace");
+                    if (Platform.OS !== 'android') window.history.pushState({}, 'AddedPlace');
+                }}
                 label={t("confirm")}
                 sizeButton="large"
                 width={90}

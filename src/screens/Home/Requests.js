@@ -1,19 +1,20 @@
 import React, {useEffect, useState} from "react";
-import {View, Text, StyleSheet, I18nManager} from 'react-native';
+import {View, StyleSheet, I18nManager} from 'react-native';
 import {useTheme} from "@react-navigation/native";
-import HomeCard from "./HomeCartUI";
+import HomeCard from "./HomeCard";
 import {useTranslation} from "react-i18next";
 import Chips from "../../components/Chips";
-import gStyles from "../../global-styles/GlobalStyles";
 import {useSelector} from "react-redux";
 import CustomSkeleton from "../../components/CustomSkeleton";
 import {getRequest} from "../../utils/sendRequest";
+import CustomText from "../../components/CustomText";
 
 
 function Requests() {
     const {t} = useTranslation();
+    const {colors} = useTheme();
     const styles = useThemedStyles();
-    const lang = useSelector(state => state.language.language);
+    const userToken = useSelector(state => state.login.token);
 
     const [latestRequests, setLatestRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +22,6 @@ function Requests() {
     useEffect(() => {
         const fetchData = async () => {
             await getLatestPodcast();
-            setIsLoading(false);
         };
         fetchData();
     }, []);
@@ -35,24 +35,37 @@ function Requests() {
             fromTime: "2024-04-30T00:00:00",
             toTime: "2024-04-30T23:59:59",
         };
-        const res = await getRequest("work_request", body);
+        const res = await getRequest("work_request", body, userToken);
         if (res.statusCode === 200) {
             setLatestRequests(res.data);
         }
+        setIsLoading(false);
     };
 
     return (
         <View style={styles.container}>
-            <HomeCard HeaderIcon={"messages-3-bold"} HeaderText={t("requests")}>
+            <HomeCard HeaderIcon={"messages-3-bold"} HeaderText={t("requests")} onMore={"Request"}>
                 <View style={styles.RequestBox}>
                     {isLoading ? <CustomSkeleton width={150} height={20}/> : <>
                         {latestRequests.length > 0 ?
-                            <Text style={styles.requestText}>{`${latestRequests} ${t("confirmed_flags")}`}</Text>
+                            <CustomText size={13} color={colors.onSurface} lineHeight={20}>
+                                {`${latestRequests} ${t("confirmed_flags")}`}
+                            </CustomText>
                             :
-                            <Text style={styles.text}>{t("no_request_available")}</Text>
+                            <CustomText size={13} color={colors.onSurface} lineHeight={20}
+                                        customStyle={{textAlign: I18nManager.isRTL ? "left" : "right"}}>
+                                {t("no_request_available")}
+                            </CustomText>
+
                         }
                     </>}
-                    <Chips text={t("confirmed")} height={25} type="confirm" transparent={true}/>
+                    {isLoading ? <CustomSkeleton width={75} height={20}/> : <>
+                        {latestRequests.length > 0 ?
+                            <Chips text={t("confirmed")} height={25} type="confirm" transparent={true}/>
+                            :
+                            <></>
+                        }
+                    </>}
                 </View>
             </HomeCard>
         </View>
@@ -61,7 +74,6 @@ function Requests() {
 
 const useThemedStyles = () => {
     const {colors} = useTheme();
-    const lang = useSelector(state => state.language.language);
 
     return StyleSheet.create({
         container: {
@@ -76,19 +88,6 @@ const useThemedStyles = () => {
             borderRadius: 6,
             padding: 10,
             marginTop: 10,
-        },
-        requestText: {
-            fontFamily: (lang === 'fa') ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
-            color: colors.onSurface,
-            fontSize: 14,
-            lineHeight: 20,
-        },
-        text: {
-            fontFamily: lang === 'fa' ? gStyles.danaPersianNumber.fontFamily : gStyles.fontBold.fontFamily,
-            color: colors.onSurface,
-            fontSize: 14,
-            lineHeight: 20,
-            textAlign: I18nManager.isRTL ? "left" : "right",
         },
     });
 };

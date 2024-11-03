@@ -3,6 +3,7 @@ import {useTheme} from "@react-navigation/native";
 import {StyleSheet, View,Text} from "react-native";
 import Card from "../../components/Card";
 import KhiyabunIcons from "../../components/KhiyabunIcons";
+import CustomText from "../../components/CustomText";
 
 function ProfileCard({headerText,children}){
     const {t, i18n} = useTranslation();
@@ -12,9 +13,9 @@ function ProfileCard({headerText,children}){
         <Card>
             <View style={styles.cardWrapper}>
                 <View style={styles.cardHeaderWrapper}>
-                    <Text style={styles.cardHeader}>
+                    <CustomText  weight={"bold"} size={16} color={colors.primary} lineHeight={24} >
                         {headerText}
-                    </Text>
+                    </CustomText>
                     <KhiyabunIcons name="edit-outline" size={16} color={colors.onSurface}/>
                 </View>
 
