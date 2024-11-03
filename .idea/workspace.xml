@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="8e4ddf2d-7199-44e5-aa43-dfdcd3851868" name="Changes" comment="added new khiyabun to develop ver for seing build logs on expo2">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-hdpi/notification_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-mdpi/notification_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-xhdpi/notification_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxhdpi/notification_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/drawable-xxxhdpi/notification_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/raw/notification1.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/app/src/main/res/raw/notification2.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/react-settings-plugin/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/android/react-settings-plugin/src/main/kotlin/expo/plugins/ReactSettingsPlugin.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist.rar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/CustomText.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/JalaliDate.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Loader.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/TagInput.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/TimePicker.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/customMenu.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/navigation/hardwareBackHandler.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/redux/actions/userBlockAction.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/redux/services/homeServices.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/redux/slices/NoteSortBy.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/redux/slices/exportDataSlice.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/redux/slices/fontSizeSlice.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/redux/slices/userBlockSlice.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/redux/slices/workLogSlice.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/ChangePassword/ChangePasswordScreen.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/ChangePassword/ConfirmChangePassword.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Flag/Flag.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Flag/FlagScreen.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Home/HomeCard.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Home/HomeInput.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Home/HomeProfile.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Home/LatestWorkLog.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Profile/ProfileWorkingHours.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Settings/SecurityPassSheet.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/TimeClock/useTimer.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Timesheet/ClockInDetailsSheet.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Timesheet/DayLog.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Timesheet/DeleteShift.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/screens/Timesheet/EditShift.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/utils/helper.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/usePushNotifications.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/webpack.config.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="JsbtTreeLayoutManager">
+    <layout place="tools.popupnpm">
+      <scroll-view-position x="0" y="0" />
+    </layout>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2kEHDWkfvUZcnccdNMbgUsTtYuU" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Notebook/Desktop/khiyabun-develop/android/app&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.appearance&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Notebook\\Desktop\\khiyabun-develop\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Notebook\Desktop\khiyabun-develop\android\app" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8e4ddf2d-7199-44e5-aa43-dfdcd3851868" name="Changes" comment="" />
+      <created>1722841696959</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1722841696959</updated>
+      <workItem from="1722841698334" duration="29170000" />
+      <workItem from="1730573672179" duration="6226000" />
+      <workItem from="1730631788227" duration="804000" />
+      <workItem from="1730632611766" duration="429000" />
+    </task>
+    <task id="LOCAL-00001" summary=".">
+      <created>1722842887387</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1722842887387</updated>
+    </task>
+    <task id="LOCAL-00002" summary=".">
+      <created>1722843915612</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1722843915612</updated>
+    </task>
+    <task id="LOCAL-00003" summary="..">
+      <created>1722844977717</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1722844977717</updated>
+    </task>
+    <task id="LOCAL-00004" summary="..">
+      <created>1722845306009</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1722845306009</updated>
+    </task>
+    <task id="LOCAL-00005" summary="..s">
+      <created>1722846300020</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1722846300020</updated>
+    </task>
+    <task id="LOCAL-00006" summary="..shy">
+      <created>1722847709986</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1722847709986</updated>
+    </task>
+    <task id="LOCAL-00007" summary="001">
+      <created>1722850208678</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1722850208678</updated>
+    </task>
+    <task id="LOCAL-00008" summary="001">
+      <created>1722850533524</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1722850533524</updated>
+    </task>
+    <task id="LOCAL-00009" summary="002">
+      <created>1722855217727</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1722855217727</updated>
+    </task>
+    <task id="LOCAL-00010" summary="003 no login requierd">
+      <created>1722858588873</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1722858588873</updated>
+    </task>
+    <task id="LOCAL-00011" summary="003 https">
+      <created>1722863040174</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1722863040174</updated>
+    </task>
+    <task id="LOCAL-00012" summary="FIREBASE">
+      <created>1722930637861</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1722930637861</updated>
+    </task>
+    <task id="LOCAL-00013" summary="added new khiyabun assets to old khiaybun_develop">
+      <created>1730574579640</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1730574579640</updated>
+    </task>
+    <task id="LOCAL-00014" summary="added &quot;expo-build-properties&quot; package">
+      <created>1730574995283</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1730574995283</updated>
+    </task>
+    <task id="LOCAL-00015" summary="removed react-native-reanimated package">
+      <created>1730575828199</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1730575828199</updated>
+    </task>
+    <task id="LOCAL-00016" summary="changed android/app/build.graddle and android/build.graddle">
+      <created>1730577321091</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1730577321091</updated>
+    </task>
+    <task id="LOCAL-00017" summary="added new khiyabun to develop ver for seing build logs on expo">
+      <created>1730632832166</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1730632832166</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+        <option value="Space.CommitStatus" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="." />
+    <MESSAGE value=".." />
+    <MESSAGE value="..s" />
+    <MESSAGE value="..shy" />
+    <MESSAGE value="001" />
+    <MESSAGE value="002" />
+    <MESSAGE value="003 no login requierd" />
+    <MESSAGE value="003 https" />
+    <MESSAGE value="FIREBASE" />
+    <MESSAGE value="added new khiyabun assets to old khiaybun_develop" />
+    <MESSAGE value="added &quot;expo-build-properties&quot; package" />
+    <MESSAGE value="removed react-native-reanimated package" />
+    <MESSAGE value="changed android/app/build.graddle and android/build.graddle" />
+    <MESSAGE value="added new khiyabun to develop ver for seing build logs on expo" />
+    <MESSAGE value="added new khiyabun to develop ver for seing build logs on expo2" />
+    <option name="LAST_COMMIT_MESSAGE" value="added new khiyabun to develop ver for seing build logs on expo2" />
+  </component>
+</project>
