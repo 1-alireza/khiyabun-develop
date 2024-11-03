@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8e4ddf2d-7199-44e5-aa43-dfdcd3851868" name="Changes" comment="added new khiyabun to develop ver for seing build logs on expo2" />
+    <list default="true" id="8e4ddf2d-7199-44e5-aa43-dfdcd3851868" name="Changes" comment="added new khiyabun to develop ver for seing build logs on expo3">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -63,7 +66,7 @@
       <workItem from="1722841698334" duration="29170000" />
       <workItem from="1730573672179" duration="6226000" />
       <workItem from="1730631788227" duration="804000" />
-      <workItem from="1730632611766" duration="1043000" />
+      <workItem from="1730632611766" duration="1874000" />
     </task>
     <task id="LOCAL-00001" summary=".">
       <created>1722842887387</created>
@@ -191,7 +194,14 @@
       <option name="project" value="LOCAL" />
       <updated>1730633305819</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="added new khiyabun to develop ver for seing build logs on expo3">
+      <created>1730633738781</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1730633738781</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -236,6 +246,7 @@
     <MESSAGE value="changed android/app/build.graddle and android/build.graddle" />
     <MESSAGE value="added new khiyabun to develop ver for seing build logs on expo" />
     <MESSAGE value="added new khiyabun to develop ver for seing build logs on expo2" />
-    <option name="LAST_COMMIT_MESSAGE" value="added new khiyabun to develop ver for seing build logs on expo2" />
+    <MESSAGE value="added new khiyabun to develop ver for seing build logs on expo3" />
+    <option name="LAST_COMMIT_MESSAGE" value="added new khiyabun to develop ver for seing build logs on expo3" />
   </component>
 </project>
